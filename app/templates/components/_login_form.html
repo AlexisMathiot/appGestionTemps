@@ -1,10 +1,4 @@
-<form id="login-form" hx-post="/auth/login" hx-swap="outerHTML" hx-target="#login-form">
-
-    {% if error %}
-    <div class="alert alert-error mb-4">
-        <span>{{ error }}</span>
-    </div>
-    {% endif %}
+<form id="login-form" hx-post="/auth/login" hx-swap="outerHTML" hx-target="#login-form" novalidate>
 
     <div class="form-control w-full mb-4">
         <label class="label" for="email">
@@ -13,18 +7,27 @@
         <input type="email" id="email" name="email"
                value="{{ form_data.get('email', '') }}"
                placeholder="vous@exemple.com"
-               class="input input-bordered w-full"
+               class="input input-bordered w-full {% if error %}input-error{% endif %}"
                required />
     </div>
 
-    <div class="form-control w-full mb-6">
+    <div class="form-control w-full mb-2">
         <label class="label" for="password">
             <span class="label-text">Mot de passe</span>
         </label>
         <input type="password" id="password" name="password"
                placeholder="Votre mot de passe"
-               class="input input-bordered w-full"
+               class="input input-bordered w-full {% if error %}input-error{% endif %}"
                required />
+        {% if error %}
+        <label class="label">
+            <span class="label-text-alt text-error">{{ error }}</span>
+        </label>
+        {% endif %}
+    </div>
+
+    <div class="text-right mb-4">
+        <a href="/auth/forgot-password" class="link link-primary text-sm">Mot de passe oublié ?</a>
     </div>
 
     <div class="form-control mt-4">

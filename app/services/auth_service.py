@@ -15,7 +15,7 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 
 async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
-    result = await db.execute(select(User).where(User.email == email))
+    result = await db.execute(select(User).where(User.email == email.lower()))
     return result.scalar_one_or_none()
 
 
@@ -32,11 +32,16 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
     return user
 
 
+async def update_password(db: AsyncSession, user: User, new_password: str) -> None:
+    user.password_hash = hash_password(new_password)
+    await db.commit()
+
+
 async def create_user(db: AsyncSession, email: str, password: str) -> User:
     existing = await get_user_by_email(db, email)
     if existing:
         raise ConflictError("Un compte avec cet email existe déjà")
-    user = User(email=email, password_hash=hash_password(password))
+    user = User(email=email.lower(), password_hash=hash_password(password))
     db.add(user)
     await db.commit()
     await db.refresh(user)
