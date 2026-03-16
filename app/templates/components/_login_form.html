@@ -1,0 +1,34 @@
+<form id="login-form" hx-post="/auth/login" hx-swap="outerHTML" hx-target="#login-form">
+
+    {% if error %}
+    <div class="alert alert-error mb-4">
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
+
+    <div class="form-control w-full mb-4">
+        <label class="label" for="email">
+            <span class="label-text">Email</span>
+        </label>
+        <input type="email" id="email" name="email"
+               value="{{ form_data.get('email', '') }}"
+               placeholder="vous@exemple.com"
+               class="input input-bordered w-full"
+               required />
+    </div>
+
+    <div class="form-control w-full mb-6">
+        <label class="label" for="password">
+            <span class="label-text">Mot de passe</span>
+        </label>
+        <input type="password" id="password" name="password"
+               placeholder="Votre mot de passe"
+               class="input input-bordered w-full"
+               required />
+    </div>
+
+    <div class="form-control mt-4">
+        <button type="submit" class="btn btn-primary w-full">Se connecter</button>
+    </div>
+
+</form>

@@ -119,6 +119,8 @@ async def test_register_hx_redirect_header(client, db_session):
     response = await client.post(
         "/auth/register",
         data={"email": "hx@example.com", "password": "password123", "password_confirm": "password123"},
+        headers={"HX-Request": "true"},
         follow_redirects=False,
     )
+    assert response.status_code == 200
     assert response.headers.get("hx-redirect") == "/"

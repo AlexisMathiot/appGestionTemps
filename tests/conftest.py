@@ -8,6 +8,8 @@ from sqlalchemy.pool import NullPool
 from app.dependencies import get_db
 from app.main import app
 from app.models.base import Base
+from app.services import auth_service
+from app.services.session_service import SESSION_COOKIE_NAME, create_session_cookie
 
 # Test database
 TEST_DATABASE_URL = os.environ.get(
@@ -48,3 +50,12 @@ async def client(db_session):
         yield ac
 
     app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def authenticated_client(client, db_session):
+    """HTTP client with a logged-in user session."""
+    user = await auth_service.create_user(db_session, "testuser@example.com", "password123")
+    cookie_value = create_session_cookie(str(user.id))
+    client.cookies.set(SESSION_COOKIE_NAME, cookie_value)
+    return client

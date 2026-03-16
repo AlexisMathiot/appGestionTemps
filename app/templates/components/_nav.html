@@ -1,0 +1,30 @@
+<nav class="navbar h-16 fixed top-0 z-50 border-b border-base-200 bg-base-100 flex justify-around">
+    <a href="/" hx-get="/" hx-push-url="true" hx-target="#app-shell" hx-select="#app-shell" hx-swap="outerHTML"
+       class="btn btn-ghost flex flex-col items-center gap-0 {% if active_page == 'home' %}text-primary{% endif %}">
+        <span class="text-xl">🏠</span>
+        <span class="text-xs">Accueil</span>
+    </a>
+    <a href="/stats" hx-get="/stats" hx-push-url="true" hx-target="#app-shell" hx-select="#app-shell" hx-swap="outerHTML"
+       class="btn btn-ghost flex flex-col items-center gap-0 {% if active_page == 'stats' %}text-primary{% endif %}">
+        <span class="text-xl">📊</span>
+        <span class="text-xs">Stats</span>
+    </a>
+    <a href="/settings" hx-get="/settings" hx-push-url="true" hx-target="#app-shell" hx-select="#app-shell" hx-swap="outerHTML"
+       class="btn btn-ghost flex flex-col items-center gap-0 {% if active_page == 'settings' %}text-primary{% endif %}">
+        <span class="text-xl">⚙️</span>
+        <span class="text-xs">Settings</span>
+    </a>
+    {% if user is defined and user %}
+    <form hx-post="/auth/logout" class="flex">
+        <button type="submit" class="btn btn-ghost flex flex-col items-center gap-0 text-error">
+            <span class="text-xl">🚪</span>
+            <span class="text-xs">Déconnexion</span>
+        </button>
+    </form>
+    {% else %}
+    <a href="/auth/login" class="btn btn-ghost flex flex-col items-center gap-0">
+        <span class="text-xl">🔑</span>
+        <span class="text-xs">Connexion</span>
+    </a>
+    {% endif %}
+</nav>

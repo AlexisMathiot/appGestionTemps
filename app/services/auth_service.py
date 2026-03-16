@@ -19,6 +19,19 @@ async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
     return result.scalar_one_or_none()
 
 
+_DUMMY_HASH = hash_password("dummy-constant-time")
+
+
+async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
+    user = await get_user_by_email(db, email)
+    if not user:
+        verify_password(password, _DUMMY_HASH)
+        return None
+    if not verify_password(password, user.password_hash):
+        return None
+    return user
+
+
 async def create_user(db: AsyncSession, email: str, password: str) -> User:
     existing = await get_user_by_email(db, email)
     if existing:
