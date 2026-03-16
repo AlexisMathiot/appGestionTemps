@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Inscription — appGestionTemps{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-[80vh]">
+    <div class="card w-full max-w-md bg-base-200 shadow-xl">
+        <div class="card-body">
+            <h1 class="card-title text-2xl font-bold justify-center mb-4">Créer un compte</h1>
+
+            {% include "components/_register_form.html" %}
+
+            <div class="divider">OU</div>
+
+            <p class="text-center text-sm">
+                Déjà un compte ?
+                <a href="/auth/login" class="link link-primary">Se connecter</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

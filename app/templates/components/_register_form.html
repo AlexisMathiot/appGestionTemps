@@ -1,0 +1,53 @@
+<form id="register-form" hx-post="/auth/register" hx-swap="outerHTML" hx-target="#register-form" novalidate>
+
+    <div class="form-control w-full mb-4">
+        <label class="label" for="email">
+            <span class="label-text">Email</span>
+        </label>
+        <input type="email" id="email" name="email"
+               value="{{ form_data.get('email', '') }}"
+               placeholder="vous@exemple.com"
+               class="input input-bordered w-full {% if errors.get('email') %}input-error{% endif %}"
+               required />
+        {% if errors.get('email') %}
+        <label class="label">
+            <span class="label-text-alt text-error">{{ errors.email }}</span>
+        </label>
+        {% endif %}
+    </div>
+
+    <div class="form-control w-full mb-4">
+        <label class="label" for="password">
+            <span class="label-text">Mot de passe</span>
+        </label>
+        <input type="password" id="password" name="password"
+               placeholder="Minimum 8 caractères"
+               class="input input-bordered w-full {% if errors.get('password') %}input-error{% endif %}"
+               required minlength="8" />
+        {% if errors.get('password') %}
+        <label class="label">
+            <span class="label-text-alt text-error">{{ errors.password }}</span>
+        </label>
+        {% endif %}
+    </div>
+
+    <div class="form-control w-full mb-6">
+        <label class="label" for="password_confirm">
+            <span class="label-text">Confirmer le mot de passe</span>
+        </label>
+        <input type="password" id="password_confirm" name="password_confirm"
+               placeholder="Retapez votre mot de passe"
+               class="input input-bordered w-full {% if errors.get('password_confirm') %}input-error{% endif %}"
+               required minlength="8" />
+        {% if errors.get('password_confirm') %}
+        <label class="label">
+            <span class="label-text-alt text-error">{{ errors.password_confirm }}</span>
+        </label>
+        {% endif %}
+    </div>
+
+    <div class="form-control mt-4">
+        <button type="submit" class="btn btn-primary w-full">Créer mon compte</button>
+    </div>
+
+</form>
