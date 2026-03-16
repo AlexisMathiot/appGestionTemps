@@ -9,6 +9,7 @@ from app.dependencies import get_db
 from app.exceptions import ConflictError
 from app.schemas.auth import ForgotPasswordForm, RegisterForm, ResetPasswordForm
 from app.services import auth_service
+from app.services.flash_service import flash
 from app.services.session_service import (
     SESSION_COOKIE_NAME,
     SESSION_MAX_AGE,
@@ -95,11 +96,8 @@ async def register(
 
 @router.get("/login")
 async def login_page(request: Request):
-    success_message = None
-    if request.query_params.get("reset") == "ok":
-        success_message = "Votre mot de passe a été réinitialisé avec succès. Connectez-vous avec votre nouveau mot de passe."
     return templates.TemplateResponse(
-        request, "pages/login.html", {"error": None, "form_data": {}, "success_message": success_message}
+        request, "pages/login.html", {"error": None, "form_data": {}}
     )
 
 
@@ -268,4 +266,6 @@ async def reset_password(
         )
 
     await auth_service.update_password(db, user, password)
-    return _redirect(request, "/auth/login?reset=ok")
+    response = _redirect(request, "/auth/login")
+    flash(response, "success", "Votre mot de passe a été réinitialisé avec succès. Connectez-vous avec votre nouveau mot de passe.")
+    return response

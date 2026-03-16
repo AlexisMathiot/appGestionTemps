@@ -85,6 +85,13 @@
         {% include "components/_nav.html" %}
 
         <main class="px-4 py-4">
+            {% if request.state.flash %}
+            {% set alert_type = request.state.flash.category %}
+            {% set alert_message = request.state.flash.message %}
+            <div class="max-w-md mx-auto">
+                {% include "components/_alert.html" %}
+            </div>
+            {% endif %}
             {% block content %}{% endblock %}
         </main>
     </div>

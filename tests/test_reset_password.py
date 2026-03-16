@@ -69,7 +69,8 @@ async def test_reset_password_success(client, db_session):
         follow_redirects=False,
     )
     assert response.status_code == 303
-    assert "/auth/login?reset=ok" in response.headers["location"]
+    assert "/auth/login" in response.headers["location"]
+    assert "flash" in response.cookies
 
 
 @pytest.mark.asyncio

@@ -5,9 +5,22 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.exceptions import AuthenticationRequired
 from app.routers import auth, pages
+from app.services.flash_service import FLASH_COOKIE_NAME, read_flash
 from app.services.session_service import SESSION_COOKIE_NAME
 
 app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG)
+
+
+@app.middleware("http")
+async def flash_middleware(request: Request, call_next):
+    """Read flash cookie into request.state and delete it from the response."""
+    flash_data = read_flash(request)
+    request.state.flash = flash_data
+    response = await call_next(request)
+    if flash_data:
+        response.delete_cookie(key=FLASH_COOKIE_NAME, httponly=True, samesite="lax")
+    return response
+
 
 app.include_router(pages.router)
 app.include_router(auth.router)

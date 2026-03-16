@@ -8,12 +8,6 @@
         <div class="card-body">
             <h1 class="card-title text-2xl font-bold justify-center mb-4">Se connecter</h1>
 
-            {% if success_message %}
-            <div class="alert alert-success mb-4">
-                <span>{{ success_message }}</span>
-            </div>
-            {% endif %}
-
             {% include "components/_login_form.html" %}
 
             <div class="divider">OU</div>
