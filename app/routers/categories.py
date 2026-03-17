@@ -1,11 +1,15 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.responses import Response
 
 from app.dependencies import get_current_user, get_db
 from app.models.user import User
+from app.routers.helpers import htmx_redirect
 from app.schemas.category import CategoryCreate
 from app.services import category_service
 from app.services.flash_service import flash
@@ -14,13 +18,38 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 templates = Jinja2Templates(directory="app/templates")
 
 
-def _redirect(request: Request, url: str) -> Response:
-    """Return HX-Redirect for HTMX requests, RedirectResponse for normal requests."""
-    if request.headers.get("HX-Request") == "true":
-        response = Response(status_code=200)
-        response.headers["HX-Redirect"] = url
-        return response
-    return RedirectResponse(url=url, status_code=303)
+async def _parse_category_form(request: Request) -> tuple[CategoryCreate | None, dict[str, str], dict]:
+    """Parse et valide le formulaire catégorie. Retourne (validated, errors, form_data)."""
+    form = await request.form()
+    name = form.get("name", "").strip()
+    emoji = form.get("emoji", "💼")
+    color = form.get("color", "#3B82F6")
+    goal_type = form.get("goal_type") or None
+    raw_goal_value = form.get("goal_value")
+
+    form_data = {
+        "name": name, "emoji": emoji, "color": color,
+        "goal_enabled": bool(goal_type or raw_goal_value),
+        "goal_type": goal_type,
+        "goal_value": raw_goal_value,
+    }
+
+    errors: dict[str, str] = {}
+    try:
+        validated = CategoryCreate(
+            name=name, emoji=emoji, color=color,
+            goal_type=goal_type, goal_value=raw_goal_value,
+        )
+    except ValidationError as e:
+        for error in e.errors():
+            if error["loc"]:
+                field = str(error["loc"][-1])
+            else:
+                field = "general"
+            errors.setdefault(field, error["msg"])
+        return None, errors, form_data
+
+    return validated, errors, form_data
 
 
 @router.get("/new")
@@ -48,18 +77,7 @@ async def create_category(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    form = await request.form()
-    name = form.get("name", "").strip()
-    emoji = form.get("emoji", "💼")
-    color = form.get("color", "#3B82F6")
-
-    errors: dict[str, str] = {}
-    try:
-        validated = CategoryCreate(name=name, emoji=emoji, color=color)
-    except ValidationError as e:
-        for error in e.errors():
-            field = str(error["loc"][-1]) if error["loc"] else "general"
-            errors.setdefault(field, error["msg"])
+    validated, errors, form_data = await _parse_category_form(request)
 
     if errors:
         is_htmx = request.headers.get("HX-Request") == "true"
@@ -71,15 +89,101 @@ async def create_category(
                 "active_page": "home",
                 "user": user,
                 "errors": errors,
-                "form_data": {"name": name, "emoji": emoji, "color": color},
+                "form_data": form_data,
             },
             status_code=422,
         )
 
     await category_service.create_category(
-        db, user.id, validated.name, validated.emoji, validated.color
+        db, user.id, validated.name, validated.emoji, validated.color,
+        validated.goal_type, validated.goal_value,
     )
 
-    response = _redirect(request, "/")
+    response = htmx_redirect(request, "/")
     flash(response, "success", "Catégorie créée !")
+    return response
+
+
+@router.get("/{category_id}/edit", response_class=HTMLResponse)
+async def edit_category_form(
+    category_id: UUID,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    category = await category_service.get_category_by_id(db, category_id, user.id)
+    if not category:
+        return Response(status_code=404)
+
+    is_htmx = request.headers.get("HX-Request") == "true"
+    template = "components/_category_edit_form.html" if is_htmx else "pages/home.html"
+    context = {
+        "category": category,
+        "user": user,
+        "errors": {},
+        "form_data": {
+            "name": category.name,
+            "emoji": category.emoji,
+            "color": category.color,
+            "goal_enabled": bool(category.goal_type),
+            "goal_type": category.goal_type,
+            "goal_value": category.goal_value,
+        },
+    }
+    if not is_htmx:
+        context["active_page"] = "home"
+    return templates.TemplateResponse(request, template, context)
+
+
+@router.post("/{category_id}/edit", response_class=HTMLResponse)
+async def edit_category(
+    category_id: UUID,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    category = await category_service.get_category_by_id(db, category_id, user.id)
+    if not category:
+        return Response(status_code=404)
+
+    validated, errors, form_data = await _parse_category_form(request)
+
+    if errors:
+        return templates.TemplateResponse(
+            request,
+            "components/_category_edit_form.html",
+            {
+                "category": category,
+                "user": user,
+                "errors": errors,
+                "form_data": form_data,
+            },
+            status_code=422,
+        )
+
+    await category_service.update_category(
+        db, category, validated.name, validated.emoji, validated.color,
+        validated.goal_type, validated.goal_value,
+    )
+
+    response = htmx_redirect(request, "/")
+    flash(response, "success", "Catégorie modifiée !")
+    return response
+
+
+@router.post("/{category_id}/delete", response_class=HTMLResponse)
+async def delete_category(
+    category_id: UUID,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    category = await category_service.get_category_by_id(db, category_id, user.id)
+    if not category:
+        return Response(status_code=404)
+
+    await category_service.delete_category(db, category)
+
+    response = htmx_redirect(request, "/")
+    flash(response, "success", "Catégorie supprimée !")
     return response

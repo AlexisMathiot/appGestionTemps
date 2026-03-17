@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.dependencies import get_db
 from app.exceptions import ConflictError
+from app.routers.helpers import htmx_redirect
 from app.schemas.auth import ForgotPasswordForm, RegisterForm, ResetPasswordForm
 from app.services import auth_service
 from app.services.flash_service import flash
@@ -20,15 +21,6 @@ from app.services.session_service import (
 
 router = APIRouter(prefix="/auth")
 templates = Jinja2Templates(directory="app/templates")
-
-
-def _redirect(request: Request, url: str) -> Response:
-    """Return HX-Redirect for HTMX requests, RedirectResponse for normal requests."""
-    if request.headers.get("HX-Request") == "true":
-        response = Response(status_code=200)
-        response.headers["HX-Redirect"] = url
-        return response
-    return RedirectResponse(url=url, status_code=303)
 
 
 def _set_session_cookie(response: Response, user_id: str, *, debug: bool) -> None:
@@ -86,7 +78,7 @@ async def register(
             request, error_template, {"errors": errors, "form_data": form_data}, status_code=422,
         )
 
-    response = _redirect(request, "/")
+    response = htmx_redirect(request, "/")
     _set_session_cookie(response, str(user.id), debug=request.app.debug)
     return response
 
@@ -121,7 +113,7 @@ async def login(
             status_code=422,
         )
 
-    response = _redirect(request, "/")
+    response = htmx_redirect(request, "/")
     _set_session_cookie(response, str(user.id), debug=request.app.debug)
     return response
 
@@ -140,7 +132,7 @@ def _delete_session_cookie(response: Response, *, debug: bool) -> None:
 
 @router.post("/logout")
 async def logout(request: Request):
-    response = _redirect(request, "/auth/login")
+    response = htmx_redirect(request, "/auth/login")
     _delete_session_cookie(response, debug=request.app.debug)
     return response
 
@@ -266,6 +258,6 @@ async def reset_password(
         )
 
     await auth_service.update_password(db, user, password)
-    response = _redirect(request, "/auth/login")
+    response = htmx_redirect(request, "/auth/login")
     flash(response, "success", "Votre mot de passe a été réinitialisé avec succès. Connectez-vous avec votre nouveau mot de passe.")
     return response

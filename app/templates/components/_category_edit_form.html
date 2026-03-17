@@ -1,13 +1,13 @@
-<form method="post" action="/categories"
-      hx-post="/categories"
+<form method="post" action="/categories/{{ category.id }}/edit"
+      hx-post="/categories/{{ category.id }}/edit"
       hx-target="#app-shell"
       hx-select="#app-shell"
       hx-swap="outerHTML">
 
     <!-- Nom -->
     <fieldset class="fieldset mb-4">
-        <label class="label" for="name">Nom</label>
-        <input type="text" id="name" name="name" maxlength="100"
+        <label class="label" for="edit-name-{{ category.id }}">Nom</label>
+        <input type="text" id="edit-name-{{ category.id }}" name="name" maxlength="100"
                placeholder="Ex : Travail, Sport, Lecture..."
                value="{{ form_data.get('name', '') }}"
                class="input w-full {% if errors.get('name') %}input-error{% endif %}" />
@@ -24,8 +24,7 @@
             {% for emoji in emojis %}
             <label class="cursor-pointer">
                 <input type="radio" name="emoji" value="{{ emoji }}" class="hidden peer"
-                       {% if form_data.get('emoji') == emoji %}checked{% endif %}
-                       {% if loop.first and not form_data.get('emoji') %}checked{% endif %} />
+                       {% if form_data.get('emoji') == emoji %}checked{% endif %} />
                 <span class="btn btn-ghost btn-sm text-2xl min-h-[44px] min-w-[44px] peer-checked:bg-base-300 peer-checked:ring-2 peer-checked:ring-primary">
                     {{ emoji }}
                 </span>
@@ -47,8 +46,7 @@
             {% for hex, label in colors %}
             <label class="cursor-pointer" title="{{ label }}">
                 <input type="radio" name="color" value="{{ hex }}" class="hidden peer"
-                       {% if form_data.get('color') == hex %}checked{% endif %}
-                       {% if loop.first and not form_data.get('color') %}checked{% endif %} />
+                       {% if form_data.get('color') == hex %}checked{% endif %} />
                 <span class="block rounded-full border-2 border-transparent peer-checked:ring-2 peer-checked:ring-primary peer-checked:ring-offset-2 min-w-[44px] min-h-[44px]"
                       style="background-color: {{ hex }}"></span>
             </label>
@@ -61,12 +59,13 @@
 
     <!-- Objectif optionnel -->
     <fieldset class="fieldset mb-4">
-        <label class="label cursor-pointer justify-start gap-2" for="create-goal-toggle">
-            <input type="checkbox" id="create-goal-toggle" class="toggle toggle-primary"
+        <label class="label cursor-pointer justify-start gap-2" for="edit-goal-toggle-{{ category.id }}">
+            <input type="checkbox" id="edit-goal-toggle-{{ category.id }}" class="toggle toggle-primary"
+                   onchange="var s=document.getElementById('edit-goal-section-{{ category.id }}');s.classList.toggle('hidden',!this.checked);s.querySelectorAll('input,select').forEach(function(el){el.disabled=!this.checked}.bind(this))"
                    {% if form_data.get('goal_enabled') %}checked{% endif %} />
             <span>Définir un objectif</span>
         </label>
-        <div id="create-goal-section" class="mt-2 flex gap-2 {% if not form_data.get('goal_enabled') %}hidden{% endif %}">
+        <div id="edit-goal-section-{{ category.id }}" class="mt-2 flex gap-2 {% if not form_data.get('goal_enabled') %}hidden{% endif %}">
             <select name="goal_type" class="select select-bordered w-1/2"
                     {% if not form_data.get('goal_enabled') %}disabled{% endif %}>
                 <option value="daily" {% if form_data.get('goal_type') == 'daily' %}selected{% endif %}>Par jour</option>
@@ -89,16 +88,7 @@
     </fieldset>
 
     <div class="modal-action">
-        <button type="submit" class="btn btn-primary min-h-[44px]">Créer</button>
+        <button type="submit" class="btn btn-primary min-h-[44px]">Enregistrer</button>
         <button type="button" class="btn min-h-[44px]" onclick="this.closest('dialog')?.close()">Annuler</button>
     </div>
 </form>
-
-<script>
-document.getElementById('create-goal-toggle').addEventListener('change', function() {
-    const section = document.getElementById('create-goal-section');
-    const inputs = section.querySelectorAll('input, select');
-    section.classList.toggle('hidden', !this.checked);
-    inputs.forEach(function(el) { el.disabled = !this.checked; }.bind(this));
-});
-</script>

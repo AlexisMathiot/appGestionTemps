@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import func, select, text
+from sqlalchemy import delete, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.category import Category
@@ -24,6 +24,8 @@ async def create_category(
     name: str,
     emoji: str,
     color: str,
+    goal_type: str | None = None,
+    goal_value: int | None = None,
 ) -> Category:
     """Create a new root category with auto-incremented position.
 
@@ -45,9 +47,52 @@ async def create_category(
         name=name,
         emoji=emoji,
         color=color,
+        goal_type=goal_type,
+        goal_value=goal_value,
         position=max_position + 1,
     )
     db.add(category)
     await db.commit()
     await db.refresh(category)
     return category
+
+
+async def get_category_by_id(
+    db: AsyncSession, category_id: uuid.UUID, user_id: uuid.UUID
+) -> Category | None:
+    """Retourne la catégorie si elle appartient à l'utilisateur, sinon None."""
+    result = await db.execute(
+        select(Category).where(
+            Category.id == category_id,
+            Category.user_id == user_id,
+            Category.parent_id.is_(None),
+        )
+    )
+    return result.scalar_one_or_none()
+
+
+async def update_category(
+    db: AsyncSession,
+    category: Category,
+    name: str,
+    emoji: str,
+    color: str,
+    goal_type: str | None = None,
+    goal_value: int | None = None,
+) -> Category:
+    """Met à jour les champs de la catégorie."""
+    category.name = name
+    category.emoji = emoji
+    category.color = color
+    category.goal_type = goal_type
+    category.goal_value = goal_value
+    await db.commit()
+    await db.refresh(category)
+    return category
+
+
+async def delete_category(db: AsyncSession, category: Category) -> None:
+    """Supprime la catégorie et ses sous-catégories."""
+    await db.execute(delete(Category).where(Category.parent_id == category.id))
+    await db.delete(category)
+    await db.commit()

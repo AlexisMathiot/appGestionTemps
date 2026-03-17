@@ -53,10 +53,10 @@ development_status:
 
   # Epic 2: Gestion des Catégories
   epic-2: in-progress
-  2-1-modele-category-et-ecran-daccueil-avec-empty-state: review
-  2-2-creation-dune-categorie: review
-  2-3-objectif-optionnel-sur-une-categorie: backlog
-  2-4-modification-et-suppression-de-categorie: backlog
+  2-1-modele-category-et-ecran-daccueil-avec-empty-state: done
+  2-2-creation-dune-categorie: done
+  2-3-objectif-optionnel-sur-une-categorie: done
+  2-4-modification-et-suppression-de-categorie: review
   2-5-sous-categories-activites: backlog
   epic-2-retrospective: optional
 
