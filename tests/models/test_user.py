@@ -14,7 +14,7 @@ def test_user_model_has_required_columns():
 def test_user_id_is_uuid():
     col = User.__table__.columns["id"]
     assert col.primary_key
-    assert col.default.arg.__name__ == "uuid4"
+    assert col.default.arg.__name__ == "uuid7"
 
 
 def test_user_email_is_unique_and_indexed():

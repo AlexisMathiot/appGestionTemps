@@ -1,18 +1,4 @@
 services:
-  app:
-    build: .
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/appgestiontemps
-      - SECRET_KEY=dev-secret-key-change-in-production
-      - DEBUG=True
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - .:/app
-
   db:
     image: postgres:18
     environment:
