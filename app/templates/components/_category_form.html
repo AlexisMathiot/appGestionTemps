@@ -1,0 +1,66 @@
+<form method="post" action="/categories"
+      hx-post="/categories"
+      hx-target="#app-shell"
+      hx-select="#app-shell"
+      hx-swap="outerHTML">
+
+    <!-- Nom -->
+    <fieldset class="fieldset mb-4">
+        <label class="label" for="name">Nom</label>
+        <input type="text" id="name" name="name" maxlength="100"
+               placeholder="Ex : Travail, Sport, Lecture..."
+               value="{{ form_data.get('name', '') }}"
+               class="input w-full {% if errors.get('name') %}input-error{% endif %}" />
+        {% if errors.get('name') %}
+        <p class="text-error text-sm mt-1">{{ errors['name'] }}</p>
+        {% endif %}
+    </fieldset>
+
+    <!-- Emoji picker DIY -->
+    <fieldset class="fieldset mb-4">
+        <label class="label">Emoji</label>
+        <div class="grid grid-cols-6 gap-2">
+            {% set emojis = ['💼', '📚', '💪', '🎮', '🎵', '🎨', '🔨', '💻', '📝', '🏃', '🧘', '🍳', '🌱', '🎯', '📊', '🏠', '🚗', '💰', '🎓', '🧹', '📸', '✈️', '🎭', '🏋️', '📱', '🛒', '☕', '🎸', '🐾', '❤️'] %}
+            {% for emoji in emojis %}
+            <label class="cursor-pointer">
+                <input type="radio" name="emoji" value="{{ emoji }}" class="hidden peer"
+                       {% if form_data.get('emoji') == emoji %}checked{% endif %}
+                       {% if loop.first and not form_data.get('emoji') %}checked{% endif %} />
+                <span class="btn btn-ghost btn-sm text-2xl min-h-[44px] min-w-[44px] peer-checked:bg-base-300 peer-checked:ring-2 peer-checked:ring-primary">
+                    {{ emoji }}
+                </span>
+            </label>
+            {% endfor %}
+        </div>
+    </fieldset>
+
+    <!-- Color picker DIY -->
+    <fieldset class="fieldset mb-4">
+        <label class="label">Couleur</label>
+        <div class="flex gap-2 flex-wrap">
+            {% set colors = [
+                ('#EF4444', 'Rouge'), ('#F59E0B', 'Ambre'), ('#10B981', 'Émeraude'),
+                ('#3B82F6', 'Bleu'), ('#8B5CF6', 'Violet'), ('#EC4899', 'Rose'),
+                ('#14B8A6', 'Turquoise'), ('#F97316', 'Orange'), ('#6366F1', 'Indigo'),
+                ('#84CC16', 'Citron vert'), ('#06B6D4', 'Cyan'), ('#78716C', 'Gris')
+            ] %}
+            {% for hex, label in colors %}
+            <label class="cursor-pointer" title="{{ label }}">
+                <input type="radio" name="color" value="{{ hex }}" class="hidden peer"
+                       {% if form_data.get('color') == hex %}checked{% endif %}
+                       {% if loop.first and not form_data.get('color') %}checked{% endif %} />
+                <span class="block rounded-full border-2 border-transparent peer-checked:ring-2 peer-checked:ring-primary peer-checked:ring-offset-2 min-w-[44px] min-h-[44px]"
+                      style="background-color: {{ hex }}"></span>
+            </label>
+            {% endfor %}
+        </div>
+        {% if errors.get('color') %}
+        <p class="text-error text-sm mt-1">{{ errors['color'] }}</p>
+        {% endif %}
+    </fieldset>
+
+    <div class="modal-action">
+        <button type="submit" class="btn btn-primary min-h-[44px]">Créer</button>
+        <button type="button" class="btn min-h-[44px]" onclick="this.closest('dialog')?.close()">Annuler</button>
+    </div>
+</form>

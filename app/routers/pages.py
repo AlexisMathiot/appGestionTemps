@@ -25,6 +25,8 @@ async def home(
             "user": user,
             "categories": categories,
             "today_summary": "0h 0min",
+            "errors": {},
+            "form_data": {},
         },
     )
 

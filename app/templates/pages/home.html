@@ -7,13 +7,8 @@
     <!-- Header résumé jour -->
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-xl font-bold">Aujourd'hui : {{ today_summary }}</h1>
-        <a href="/categories/new"
-           class="btn btn-primary btn-circle min-w-[44px] min-h-[44px]"
-           hx-get="/categories/new"
-           hx-push-url="true"
-           hx-target="#app-shell"
-           hx-select="#app-shell"
-           hx-swap="outerHTML">+</a>
+        <button class="btn btn-primary btn-circle min-w-[44px] min-h-[44px]"
+                onclick="document.getElementById('create-category-modal').showModal()">+</button>
     </div>
 
     {% if categories %}
@@ -23,14 +18,23 @@
         <!-- Empty state -->
         <div class="flex flex-col items-center justify-center min-h-[40vh] text-center">
             <p class="text-secondary text-lg mb-4">Créez votre première catégorie</p>
-            <a href="/categories/new"
-               class="btn btn-primary min-w-[44px] min-h-[44px]"
-               hx-get="/categories/new"
-               hx-push-url="true"
-               hx-target="#app-shell"
-               hx-select="#app-shell"
-               hx-swap="outerHTML">+ Nouvelle catégorie</a>
+            <button class="btn btn-primary min-w-[44px] min-h-[44px]"
+                    onclick="document.getElementById('create-category-modal').showModal()">+ Nouvelle catégorie</button>
         </div>
     {% endif %}
 </div>
+
+<!-- Modal de création de catégorie -->
+<dialog id="create-category-modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box">
+        <h3 class="text-lg font-bold mb-4">Nouvelle catégorie</h3>
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        {% include "components/_category_form.html" %}
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
 {% endblock %}

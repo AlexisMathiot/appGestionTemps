@@ -10,7 +10,7 @@
 
     {% block head %}{% endblock %}
 </head>
-<body class="font-sans min-h-screen bg-base-100 pt-16">
+<body class="font-sans min-h-screen bg-base-100 pt-20">
 
     <div id="app-shell">
         {% include "components/_nav.html" %}
@@ -19,9 +19,7 @@
             {% if request.state.flash %}
             {% set alert_type = request.state.flash.category %}
             {% set alert_message = request.state.flash.message %}
-            <div class="max-w-md mx-auto">
-                {% include "components/_alert.html" %}
-            </div>
+            {% include "components/_alert.html" %}
             {% endif %}
             {% block content %}{% endblock %}
         </main>
