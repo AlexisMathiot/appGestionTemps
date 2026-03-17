@@ -1,0 +1,72 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+/* Scan des templates Jinja2 pour Tailwind (obligatoire — les templates
+   sont hors du répertoire de input.css) */
+@source "../../../app/templates";
+
+/* Fonts custom */
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Thème custom appGestionTemps */
+@plugin "daisyui/theme" {
+  name: "appgestiontemps";
+  default: true;
+  color-scheme: light;
+
+  --color-base-100: oklch(100% 0 0);
+  --color-base-200: oklch(96.5% 0.006 264);
+  --color-base-300: oklch(93% 0.011 264);
+  --color-base-content: oklch(27.8% 0.033 266);
+
+  --color-primary: oklch(62.3% 0.183 264);
+  --color-primary-content: oklch(100% 0 0);
+
+  --color-secondary: oklch(55.4% 0.023 264);
+  --color-secondary-content: oklch(100% 0 0);
+
+  --color-accent: oklch(72.3% 0.195 150);
+  --color-accent-content: oklch(15% 0.02 150);
+
+  --color-neutral: oklch(27.8% 0.033 266);
+  --color-neutral-content: oklch(96% 0.005 264);
+
+  --color-info: oklch(62.3% 0.183 264);
+  --color-info-content: oklch(100% 0 0);
+
+  --color-success: oklch(72.3% 0.195 150);
+  --color-success-content: oklch(15% 0.02 150);
+
+  --color-warning: oklch(79.5% 0.164 70);
+  --color-warning-content: oklch(15% 0.02 70);
+
+  --color-error: oklch(62.8% 0.226 22);
+  --color-error-content: oklch(100% 0 0);
+
+  --radius-selector: 1.9rem;
+  --radius-field: 0.5rem;
+  --radius-box: 1rem;
+
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+/* Focus visible — ring 2px primary */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

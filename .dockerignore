@@ -1,0 +1,16 @@
+node_modules/
+.git/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.env
+.vscode/
+.idea/
+.DS_Store
+_bmad-output/
+_bmad/
+.claude/

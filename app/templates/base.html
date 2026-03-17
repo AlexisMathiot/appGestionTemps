@@ -1,81 +1,12 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="appgestiontemps">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}appGestionTemps{% endblock %}</title>
 
-    <!-- Tailwind CSS + DaisyUI -->
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.24/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
-                    },
-                },
-            },
-        }
-    </script>
-
-    <style>
-        /* Custom DaisyUI theme — oklch CSS variables */
-        [data-theme="appgestiontemps"] {
-            color-scheme: light;
-            --p: 62.3% 0.183 264;       /* primary — #3B82F6 */
-            --pf: 57% 0.183 264;        /* primary-focus */
-            --pc: 100% 0 0;             /* primary-content */
-            --s: 55.4% 0.023 264;       /* secondary — #64748B */
-            --sf: 50% 0.023 264;        /* secondary-focus */
-            --sc: 100% 0 0;             /* secondary-content */
-            --a: 72.3% 0.195 150;       /* accent — #22C55E */
-            --af: 67% 0.195 150;        /* accent-focus */
-            --ac: 15% 0.02 150;         /* accent-content */
-            --n: 27.8% 0.033 266;       /* neutral — #1E293B */
-            --nf: 23% 0.033 266;        /* neutral-focus */
-            --nc: 96% 0.005 264;        /* neutral-content */
-            --b1: 100% 0 0;             /* base-100 — #FFFFFF */
-            --b2: 96.5% 0.006 264;      /* base-200 */
-            --b3: 93% 0.011 264;        /* base-300 */
-            --bc: 27.8% 0.033 266;      /* base-content */
-            --in: 62.3% 0.183 264;      /* info — #3B82F6 */
-            --inc: 100% 0 0;            /* info-content */
-            --su: 72.3% 0.195 150;      /* success — #22C55E */
-            --suc: 15% 0.02 150;        /* success-content */
-            --wa: 79.5% 0.164 70;       /* warning — #F59E0B */
-            --wac: 15% 0.02 70;         /* warning-content */
-            --er: 62.8% 0.226 22;       /* error — #EF4444 */
-            --erc: 100% 0 0;            /* error-content */
-            --rounded-box: 1rem;
-            --rounded-btn: 0.5rem;
-            --rounded-badge: 1.9rem;
-            --animation-btn: 0.25s;
-            --animation-input: 0.2s;
-            --btn-focus-scale: 0.95;
-            --border-btn: 1px;
-            --tab-border: 1px;
-            --tab-radius: 0.5rem;
-        }
-
-        /* Focus visible — ring 2px primary */
-        :focus-visible {
-            outline: 2px solid oklch(var(--p));
-            outline-offset: 2px;
-        }
-
-        /* Respect prefers-reduced-motion */
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-                scroll-behavior: auto !important;
-            }
-        }
-    </style>
+    <!-- Tailwind CSS + DaisyUI (compiled) -->
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
 
     {% block head %}{% endblock %}
 </head>
@@ -97,7 +28,7 @@
     </div>
 
     <!-- HTMX -->
-    <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', path='js/htmx.min.js') }}"></script>
     <script>
         htmx.config.responseHandling = [
             {code: "204", swap: false},

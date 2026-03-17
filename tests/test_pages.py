@@ -1,4 +1,8 @@
+from pathlib import Path
+
 import pytest
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 @pytest.mark.asyncio
@@ -14,15 +18,15 @@ async def test_home_contains_html(authenticated_client):
 
 
 @pytest.mark.asyncio
-async def test_home_contains_daisyui(authenticated_client):
+async def test_home_contains_local_css(authenticated_client):
     response = await authenticated_client.get("/")
-    assert "daisyui" in response.text
+    assert "css/style.css" in response.text
 
 
 @pytest.mark.asyncio
-async def test_home_contains_htmx(authenticated_client):
+async def test_home_contains_local_htmx(authenticated_client):
     response = await authenticated_client.get("/")
-    assert "htmx.org" in response.text
+    assert "js/htmx.min.js" in response.text
 
 
 @pytest.mark.asyncio
@@ -32,9 +36,11 @@ async def test_home_contains_navbar(authenticated_client):
 
 
 @pytest.mark.asyncio
-async def test_home_contains_theme(authenticated_client):
+async def test_home_no_cdn_references(authenticated_client):
     response = await authenticated_client.get("/")
-    assert "appgestiontemps" in response.text
+    assert "cdn.jsdelivr.net" not in response.text
+    assert "cdn.tailwindcss.com" not in response.text
+    assert "unpkg.com" not in response.text
 
 
 @pytest.mark.asyncio
@@ -68,15 +74,15 @@ async def test_settings_contains_placeholder(authenticated_client):
 
 
 @pytest.mark.asyncio
-async def test_prefers_reduced_motion_in_base(authenticated_client):
-    response = await authenticated_client.get("/")
-    assert "prefers-reduced-motion" in response.text
+async def test_prefers_reduced_motion_in_css():
+    css = (_PROJECT_ROOT / "app/static/css/input.css").read_text()
+    assert "prefers-reduced-motion" in css
 
 
 @pytest.mark.asyncio
-async def test_focus_visible_in_base(authenticated_client):
-    response = await authenticated_client.get("/")
-    assert "focus-visible" in response.text
+async def test_focus_visible_in_css():
+    css = (_PROJECT_ROOT / "app/static/css/input.css").read_text()
+    assert "focus-visible" in css
 
 
 @pytest.mark.asyncio

@@ -34,5 +34,8 @@ venv/
 .DS_Store
 Thumbs.db
 
+# Node.js
+node_modules/
+
 # Docker
 docker-compose.override.yml

@@ -1,0 +1,19 @@
+{
+  "name": "appgestiontemps-frontend",
+  "private": true,
+  "scripts": {
+    "build:css": "postcss app/static/css/input.css -o app/static/css/style.css --verbose",
+    "watch:css": "postcss app/static/css/input.css -o app/static/css/style.css --watch --verbose",
+    "postinstall": "mkdir -p app/static/js && cp node_modules/htmx.org/dist/htmx.min.js app/static/js/htmx.min.js"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4",
+    "@tailwindcss/postcss": "^4",
+    "postcss": "^8",
+    "postcss-cli": "^11",
+    "daisyui": "^5"
+  },
+  "dependencies": {
+    "htmx.org": "2.0.8"
+  }
+}

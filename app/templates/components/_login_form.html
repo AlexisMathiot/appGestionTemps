@@ -1,36 +1,30 @@
 <form id="login-form" hx-post="/auth/login" hx-swap="outerHTML" hx-target="#login-form" novalidate>
 
-    <div class="form-control w-full mb-4">
-        <label class="label" for="email">
-            <span class="label-text">Email</span>
-        </label>
+    <fieldset class="fieldset mb-4">
+        <label class="label" for="email">Email</label>
         <input type="email" id="email" name="email"
                value="{{ form_data.get('email', '') }}"
                placeholder="vous@exemple.com"
-               class="input input-bordered w-full {% if error %}input-error{% endif %}"
+               class="input w-full {% if error %}input-error{% endif %}"
                required />
-    </div>
+    </fieldset>
 
-    <div class="form-control w-full mb-2">
-        <label class="label" for="password">
-            <span class="label-text">Mot de passe</span>
-        </label>
+    <fieldset class="fieldset mb-2">
+        <label class="label" for="password">Mot de passe</label>
         <input type="password" id="password" name="password"
                placeholder="Votre mot de passe"
-               class="input input-bordered w-full {% if error %}input-error{% endif %}"
+               class="input w-full {% if error %}input-error{% endif %}"
                required />
         {% if error %}
-        <label class="label">
-            <span class="label-text-alt text-error">{{ error }}</span>
-        </label>
+        <p class="label text-error">{{ error }}</p>
         {% endif %}
-    </div>
+    </fieldset>
 
     <div class="text-right mb-4">
         <a href="/auth/forgot-password" class="link link-primary text-sm">Mot de passe oublié ?</a>
     </div>
 
-    <div class="form-control mt-4">
+    <div class="mt-4">
         <button type="submit" class="btn btn-primary w-full">Se connecter</button>
     </div>
 
