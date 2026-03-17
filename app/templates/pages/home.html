@@ -3,8 +3,34 @@
 {% block title %}Accueil — appGestionTemps{% endblock %}
 
 {% block content %}
-<div class="flex flex-col items-center justify-center min-h-[60vh] text-center">
-    <h1 class="text-3xl font-bold mb-4">🏠 Accueil</h1>
-    <p class="text-secondary text-lg">Catégories à venir</p>
+<div class="max-w-4xl mx-auto">
+    <!-- Header résumé jour -->
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-xl font-bold">Aujourd'hui : {{ today_summary }}</h1>
+        <a href="/categories/new"
+           class="btn btn-primary btn-circle min-w-[44px] min-h-[44px]"
+           hx-get="/categories/new"
+           hx-push-url="true"
+           hx-target="#app-shell"
+           hx-select="#app-shell"
+           hx-swap="outerHTML">+</a>
+    </div>
+
+    {% if categories %}
+        <!-- Grid de catégories -->
+        {% include "components/_category_grid.html" %}
+    {% else %}
+        <!-- Empty state -->
+        <div class="flex flex-col items-center justify-center min-h-[40vh] text-center">
+            <p class="text-secondary text-lg mb-4">Créez votre première catégorie</p>
+            <a href="/categories/new"
+               class="btn btn-primary min-w-[44px] min-h-[44px]"
+               hx-get="/categories/new"
+               hx-push-url="true"
+               hx-target="#app-shell"
+               hx-select="#app-shell"
+               hx-swap="outerHTML">+ Nouvelle catégorie</a>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -1,17 +1,31 @@
 from fastapi import APIRouter, Depends, Request
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, get_db
 from app.models.user import User
+from app.services import category_service
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/")
-async def home(request: Request, user: User = Depends(get_current_user)):
+async def home(
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    categories = await category_service.get_user_categories(db, user.id)
     return templates.TemplateResponse(
-        request, "pages/home.html", {"active_page": "home", "user": user}
+        request,
+        "pages/home.html",
+        {
+            "active_page": "home",
+            "user": user,
+            "categories": categories,
+            "today_summary": "0h 0min",
+        },
     )
 
 
