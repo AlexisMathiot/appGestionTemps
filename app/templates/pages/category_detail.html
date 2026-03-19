@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.emoji }} {{ category.name }} — appGestionTemps{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header avec retour -->
+    <a hx-get="/" hx-target="#app-shell" hx-select="#app-shell" hx-push-url="/" hx-swap="outerHTML"
+       class="btn btn-ghost btn-sm mb-4 min-h-[44px]">&larr; Accueil</a>
+
+    <!-- Catégorie parente -->
+    <div class="flex items-center gap-3 mb-6" style="border-left: 4px solid {{ category.color }}; padding-left: 12px;">
+        <span class="text-3xl">{{ category.emoji }}</span>
+        <h1 class="text-xl font-bold">{{ category.name }}</h1>
+    </div>
+
+    <!-- Sous-catégories header -->
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">Sous-catégories</h2>
+        <button class="btn btn-primary btn-sm min-h-[44px]"
+                onclick="document.getElementById('subcategory-create-modal').showModal()">+ Ajouter</button>
+    </div>
+
+    <!-- Liste des sous-catégories -->
+    {% include "components/_subcategory_list.html" %}
+</div>
+
+<!-- Modal de création de sous-catégorie -->
+<dialog id="subcategory-create-modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box">
+        <h3 class="text-lg font-bold mb-4">Nouvelle sous-catégorie</h3>
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        {% include "components/_subcategory_form.html" %}
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+{% if subcategories %}
+    {% for sub in subcategories %}
+    <!-- Modal d'édition pour {{ sub.name }} -->
+    <dialog id="edit-sub-modal-{{ sub.id }}" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box">
+            <h3 class="text-lg font-bold mb-4">Modifier la sous-catégorie</h3>
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+            <div id="edit-sub-form-container-{{ sub.id }}">
+                <span class="loading loading-spinner loading-md"></span>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- Modal de suppression pour {{ sub.name }} -->
+    {% include "components/_subcategory_delete_confirm.html" %}
+    {% endfor %}
+{% endif %}
+{% endblock %}

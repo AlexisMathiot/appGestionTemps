@@ -96,3 +96,89 @@ async def delete_category(db: AsyncSession, category: Category) -> None:
     await db.execute(delete(Category).where(Category.parent_id == category.id))
     await db.delete(category)
     await db.commit()
+
+
+# --- Sous-catégories ---
+
+
+async def get_subcategories(
+    db: AsyncSession, parent_id: uuid.UUID, user_id: uuid.UUID
+) -> list[Category]:
+    """Return subcategories of a parent category, sorted by position then created_at."""
+    result = await db.execute(
+        select(Category)
+        .where(
+            Category.parent_id == parent_id,
+            Category.user_id == user_id,
+        )
+        .order_by(Category.position, Category.created_at)
+    )
+    return list(result.scalars().all())
+
+
+async def create_subcategory(
+    db: AsyncSession, parent: Category, name: str, emoji: str
+) -> Category:
+    """Create a subcategory under the given parent category.
+
+    Inherits color from parent. Position is auto-incremented within siblings.
+    Uses advisory lock scoped to parent_id to prevent race conditions.
+    """
+    if parent.parent_id is not None:
+        raise ValueError("Cannot create a subcategory under another subcategory (2 levels max)")
+
+    lock_id = parent.id.int & 0x7FFFFFFFFFFFFFFF
+    await db.execute(text("SELECT pg_advisory_xact_lock(:lock_id)"), {"lock_id": lock_id})
+
+    result = await db.execute(
+        select(func.coalesce(func.max(Category.position), -1)).where(
+            Category.parent_id == parent.id
+        )
+    )
+    max_position = result.scalar()
+
+    subcategory = Category(
+        user_id=parent.user_id,
+        parent_id=parent.id,
+        name=name,
+        emoji=emoji,
+        color=parent.color,
+        goal_type=None,
+        goal_value=None,
+        position=max_position + 1,
+    )
+    db.add(subcategory)
+    await db.commit()
+    await db.refresh(subcategory)
+    return subcategory
+
+
+async def get_subcategory_by_id(
+    db: AsyncSession, subcategory_id: uuid.UUID, user_id: uuid.UUID
+) -> Category | None:
+    """Return a subcategory (parent_id IS NOT NULL) if it belongs to the user."""
+    result = await db.execute(
+        select(Category).where(
+            Category.id == subcategory_id,
+            Category.user_id == user_id,
+            Category.parent_id.is_not(None),
+        )
+    )
+    return result.scalar_one_or_none()
+
+
+async def update_subcategory(
+    db: AsyncSession, subcategory: Category, name: str, emoji: str
+) -> Category:
+    """Update name and emoji of a subcategory."""
+    subcategory.name = name
+    subcategory.emoji = emoji
+    await db.commit()
+    await db.refresh(subcategory)
+    return subcategory
+
+
+async def delete_subcategory(db: AsyncSession, subcategory: Category) -> None:
+    """Delete a subcategory."""
+    await db.delete(subcategory)
+    await db.commit()

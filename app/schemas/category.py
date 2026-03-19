@@ -71,3 +71,30 @@ class CategoryCreate(BaseModel):
 
 # CategoryUpdate a les mêmes champs et validations que CategoryCreate
 CategoryUpdate = CategoryCreate
+
+
+class SubCategoryCreate(BaseModel):
+    name: str
+    emoji: str
+
+    @field_validator("name")
+    @classmethod
+    def name_not_empty(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Le nom est obligatoire")
+        if len(v) > 100:
+            raise ValueError("Le nom ne doit pas dépasser 100 caractères")
+        return v
+
+    @field_validator("emoji")
+    @classmethod
+    def emoji_valid(cls, v: str) -> str:
+        if not v:
+            raise ValueError("L'emoji est obligatoire")
+        if len(v) > 10:
+            raise ValueError("L'emoji ne doit pas dépasser 10 caractères")
+        return v
+
+
+SubCategoryUpdate = SubCategoryCreate

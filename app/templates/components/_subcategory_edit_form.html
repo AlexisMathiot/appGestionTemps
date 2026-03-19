@@ -1,0 +1,40 @@
+<form method="post" action="/categories/{{ category.id }}/subcategories/{{ subcategory.id }}/edit"
+      hx-post="/categories/{{ category.id }}/subcategories/{{ subcategory.id }}/edit"
+      hx-target="#app-shell"
+      hx-select="#app-shell"
+      hx-swap="outerHTML">
+
+    <!-- Nom -->
+    <fieldset class="fieldset mb-4">
+        <label class="label" for="edit-sub-name-{{ subcategory.id }}">Nom</label>
+        <input type="text" id="edit-sub-name-{{ subcategory.id }}" name="name" maxlength="100"
+               placeholder="Ex : Réunions, Code, Cardio..."
+               value="{{ form_data.get('name', '') }}"
+               class="input w-full {% if errors.get('name') %}input-error{% endif %}" />
+        {% if errors.get('name') %}
+        <p class="text-error text-sm mt-1">{{ errors['name'] }}</p>
+        {% endif %}
+    </fieldset>
+
+    <!-- Emoji picker DIY -->
+    <fieldset class="fieldset mb-4">
+        <label class="label">Emoji</label>
+        <div class="grid grid-cols-6 gap-2">
+            {% set emojis = ['💼', '📚', '💪', '🎮', '🎵', '🎨', '🔨', '💻', '📝', '🏃', '🧘', '🍳', '🌱', '🎯', '📊', '🏠', '🚗', '💰', '🎓', '🧹', '📸', '✈️', '🎭', '🏋️', '📱', '🛒', '☕', '🎸', '🐾', '❤️'] %}
+            {% for emoji in emojis %}
+            <label class="cursor-pointer">
+                <input type="radio" name="emoji" value="{{ emoji }}" class="hidden peer"
+                       {% if form_data.get('emoji') == emoji %}checked{% endif %} />
+                <span class="btn btn-ghost btn-sm text-2xl min-h-[44px] min-w-[44px] peer-checked:bg-base-300 peer-checked:ring-2 peer-checked:ring-primary">
+                    {{ emoji }}
+                </span>
+            </label>
+            {% endfor %}
+        </div>
+    </fieldset>
+
+    <div class="modal-action">
+        <button type="submit" class="btn btn-primary min-h-[44px]">Enregistrer</button>
+        <button type="button" class="btn min-h-[44px]" onclick="this.closest('dialog')?.close()">Annuler</button>
+    </div>
+</form>

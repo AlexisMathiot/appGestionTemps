@@ -10,7 +10,7 @@ from starlette.responses import Response
 from app.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.routers.helpers import htmx_redirect
-from app.schemas.category import CategoryCreate
+from app.schemas.category import CategoryCreate, SubCategoryCreate
 from app.services import category_service
 from app.services.flash_service import flash
 
@@ -186,4 +186,186 @@ async def delete_category(
 
     response = htmx_redirect(request, "/")
     flash(response, "success", "Catégorie supprimée !")
+    return response
+
+
+# --- Page de détail catégorie et sous-catégories ---
+
+
+async def _parse_subcategory_form(
+    request: Request,
+) -> tuple[SubCategoryCreate | None, dict[str, str], dict]:
+    """Parse et valide le formulaire sous-catégorie. Retourne (validated, errors, form_data)."""
+    form = await request.form()
+    name = form.get("name", "").strip()
+    emoji = form.get("emoji", "💼")
+
+    form_data = {"name": name, "emoji": emoji}
+
+    errors: dict[str, str] = {}
+    try:
+        validated = SubCategoryCreate(name=name, emoji=emoji)
+    except ValidationError as e:
+        for error in e.errors():
+            if error["loc"]:
+                field = str(error["loc"][-1])
+            else:
+                field = "general"
+            errors.setdefault(field, error["msg"])
+        return None, errors, form_data
+
+    return validated, errors, form_data
+
+
+@router.get("/{category_id}", response_class=HTMLResponse)
+async def category_detail(
+    category_id: UUID,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    category = await category_service.get_category_by_id(db, category_id, user.id)
+    if not category:
+        return Response(status_code=404)
+
+    subcategories = await category_service.get_subcategories(db, category_id, user.id)
+
+    return templates.TemplateResponse(
+        request,
+        "pages/category_detail.html",
+        {
+            "active_page": "home",
+            "user": user,
+            "category": category,
+            "subcategories": subcategories,
+            "errors": {},
+            "form_data": {},
+        },
+    )
+
+
+@router.post("/{category_id}/subcategories", response_class=HTMLResponse)
+async def create_subcategory(
+    category_id: UUID,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    category = await category_service.get_category_by_id(db, category_id, user.id)
+    if not category:
+        return Response(status_code=404)
+
+    validated, errors, form_data = await _parse_subcategory_form(request)
+
+    if errors:
+        subcategories = await category_service.get_subcategories(db, category_id, user.id)
+        return templates.TemplateResponse(
+            request,
+            "pages/category_detail.html",
+            {
+                "active_page": "home",
+                "user": user,
+                "category": category,
+                "subcategories": subcategories,
+                "errors": errors,
+                "form_data": form_data,
+            },
+            status_code=422,
+        )
+
+    await category_service.create_subcategory(db, category, validated.name, validated.emoji)
+
+    response = htmx_redirect(request, f"/categories/{category_id}")
+    flash(response, "success", "Sous-catégorie créée !")
+    return response
+
+
+@router.get("/{category_id}/subcategories/{sub_id}/edit", response_class=HTMLResponse)
+async def edit_subcategory_form(
+    category_id: UUID,
+    sub_id: UUID,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    category = await category_service.get_category_by_id(db, category_id, user.id)
+    if not category:
+        return Response(status_code=404)
+
+    subcategory = await category_service.get_subcategory_by_id(db, sub_id, user.id)
+    if not subcategory or subcategory.parent_id != category_id:
+        return Response(status_code=404)
+
+    return templates.TemplateResponse(
+        request,
+        "components/_subcategory_edit_form.html",
+        {
+            "category": category,
+            "subcategory": subcategory,
+            "user": user,
+            "errors": {},
+            "form_data": {"name": subcategory.name, "emoji": subcategory.emoji},
+        },
+    )
+
+
+@router.post("/{category_id}/subcategories/{sub_id}/edit", response_class=HTMLResponse)
+async def edit_subcategory(
+    category_id: UUID,
+    sub_id: UUID,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    category = await category_service.get_category_by_id(db, category_id, user.id)
+    if not category:
+        return Response(status_code=404)
+
+    subcategory = await category_service.get_subcategory_by_id(db, sub_id, user.id)
+    if not subcategory or subcategory.parent_id != category_id:
+        return Response(status_code=404)
+
+    validated, errors, form_data = await _parse_subcategory_form(request)
+
+    if errors:
+        return templates.TemplateResponse(
+            request,
+            "components/_subcategory_edit_form.html",
+            {
+                "category": category,
+                "subcategory": subcategory,
+                "user": user,
+                "errors": errors,
+                "form_data": form_data,
+            },
+            status_code=422,
+        )
+
+    await category_service.update_subcategory(db, subcategory, validated.name, validated.emoji)
+
+    response = htmx_redirect(request, f"/categories/{category_id}")
+    flash(response, "success", "Sous-catégorie modifiée !")
+    return response
+
+
+@router.post("/{category_id}/subcategories/{sub_id}/delete", response_class=HTMLResponse)
+async def delete_subcategory(
+    category_id: UUID,
+    sub_id: UUID,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    category = await category_service.get_category_by_id(db, category_id, user.id)
+    if not category:
+        return Response(status_code=404)
+
+    subcategory = await category_service.get_subcategory_by_id(db, sub_id, user.id)
+    if not subcategory or subcategory.parent_id != category_id:
+        return Response(status_code=404)
+
+    await category_service.delete_subcategory(db, subcategory)
+
+    response = htmx_redirect(request, f"/categories/{category_id}")
+    flash(response, "success", "Sous-catégorie supprimée !")
     return response

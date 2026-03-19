@@ -56,8 +56,8 @@ development_status:
   2-1-modele-category-et-ecran-daccueil-avec-empty-state: done
   2-2-creation-dune-categorie: done
   2-3-objectif-optionnel-sur-une-categorie: done
-  2-4-modification-et-suppression-de-categorie: review
-  2-5-sous-categories-activites: backlog
+  2-4-modification-et-suppression-de-categorie: done
+  2-5-sous-categories-activites: review
   epic-2-retrospective: optional
 
   # Epic 3: Tracking du Temps
