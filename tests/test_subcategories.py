@@ -225,6 +225,25 @@ async def test_delete_parent_cascades_subcategories(db_session):
 
 
 @pytest.mark.asyncio
+async def test_update_parent_color_propagates_to_subcategories(db_session):
+    """Modifier la couleur d'une catégorie parente propage aux sous-catégories."""
+    user = await auth_service.create_user(db_session, "sub-color-prop@test.com", "password123")
+    parent = await category_service.create_category(db_session, user.id, "Sport", "🏃", "#FF5733")
+    sub1 = await category_service.create_subcategory(db_session, parent, "Course", "🏃‍♂️")
+    sub2 = await category_service.create_subcategory(db_session, parent, "Natation", "🏊")
+
+    assert sub1.color == "#FF5733"
+    assert sub2.color == "#FF5733"
+
+    await category_service.update_category(db_session, parent, "Sport", "🏃", "#0000FF")
+
+    await db_session.refresh(sub1)
+    await db_session.refresh(sub2)
+    assert sub1.color == "#0000FF"
+    assert sub2.color == "#0000FF"
+
+
+@pytest.mark.asyncio
 async def test_get_subcategories_user_isolation(db_session):
     """get_subcategories ne retourne pas les sous-catégories d'un autre utilisateur."""
     user1 = await auth_service.create_user(db_session, "sub-iso1@test.com", "password123")

@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import delete, func, select, text
+from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.category import Category
@@ -83,9 +83,16 @@ async def update_category(
     """Met à jour les champs de la catégorie."""
     category.name = name
     category.emoji = emoji
+    old_color = category.color
     category.color = color
     category.goal_type = goal_type
     category.goal_value = goal_value
+    if color != old_color:
+        await db.execute(
+            update(Category)
+            .where(Category.parent_id == category.id)
+            .values(color=color)
+        )
     await db.commit()
     await db.refresh(category)
     return category
