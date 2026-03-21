@@ -121,10 +121,8 @@ This document provides the complete epic and story breakdown for appGestionTemps
 - Timer client-side : JavaScript minimal (setInterval 1s), localStorage pour persistance, Page Visibility API
 
 **PWA**
-- Service Worker avec Workbox
-- Cache-first pour assets, network-first pour API
-- Manifest standalone, theme colors
-- Banner "Mode hors-ligne" pour UX offline
+- Manifest standalone, theme colors, icônes multi-tailles
+- ~~Service Worker / cache offline : retiré du scope MVP~~
 
 **Conventions & Patterns**
 - Nommage : snake_case Python, PascalCase classes, underscore prefix pour fragments HTMX
@@ -226,10 +224,11 @@ L'utilisateur peut voir ses streaks par catégorie (jours consécutifs), suivre 
 **UX-DRs :** UX-DR9
 **Dépendances :** Epic 1 (auth), Epic 2 (catégories + objectifs), Epic 3 (time entries)
 
-### Epic 6 : PWA & Expérience Mobile Optimisée
-L'utilisateur peut installer l'app sur son téléphone, bénéficier d'un mode hors-ligne basique avec cache des données, et d'une expérience mobile native optimisée.
-**FRs couverts :** Aucun FR direct — couvre les exigences Architecture PWA et NFRs performance/fiabilité
-**Inclut :** Service Worker (Workbox), manifest standalone, cache strategies (cache-first assets, network-first API), banner offline, optimisation performance (FCP < 1s, TTI < 2s)
+### Epic 6 : PWA — Installation Mobile
+L'utilisateur peut installer l'app sur son téléphone comme une app native depuis l'écran d'accueil.
+**FRs couverts :** Aucun FR direct — couvre l'exigence Architecture PWA (manifest)
+**Inclut :** Manifest standalone, icônes multi-tailles, theme colors
+**Retiré du scope MVP :** Service Worker (Workbox), cache offline, banner hors-ligne, optimisation performance dédiée (FCP/TTI atteints naturellement par la stack HTMX server-side)
 
 ## Epic 1 : Authentification & Fondations de l'App
 
@@ -527,6 +526,12 @@ So that je puisse capturer le contexte de mon travail.
 **Then** la session est enregistrée sans note
 **And** le comportement est identique à "Enregistrer"
 
+**Given** un timer est actif
+**When** l'utilisateur clique sur "Déconnexion"
+**Then** un modal de confirmation s'affiche ("Un timer est en cours — Voulez-vous l'arrêter ?")
+**And** si confirmé, le timer est stoppé (même logique que Stop) puis le logout s'exécute
+**And** si annulé, rien ne se passe
+
 ### Story 3.4 : Saisie manuelle d'une entrée de temps
 
 As a utilisateur,
@@ -710,9 +715,11 @@ So that je sache où j'en suis par rapport à mes cibles.
 **When** l'affichage se construit
 **Then** aucun indicateur de progression n'est affiché pour cette catégorie
 
-## Epic 6 : PWA & Expérience Mobile Optimisée
+## Epic 6 : PWA — Installation Mobile
 
-L'utilisateur peut installer l'app sur son téléphone, bénéficier d'un mode hors-ligne basique avec cache des données, et d'une expérience mobile native optimisée.
+L'utilisateur peut installer l'app sur son téléphone comme une app native depuis l'écran d'accueil.
+
+> **Scope réduit (2026-03-20) :** Stories 6.2 (Service Worker/offline) et 6.3 (optimisation perf) retirées du MVP. La stack HTMX server-side atteint naturellement les targets de performance sans effort dédié. Le cache offline est un nice-to-have post-MVP.
 
 ### Story 6.1 : Manifest PWA et installation
 
@@ -732,50 +739,3 @@ So that j'y accède rapidement depuis mon écran d'accueil.
 **When** il l'ouvre depuis l'écran d'accueil
 **Then** l'app se lance en mode standalone (sans barre d'adresse)
 **And** les couleurs du thème sont appliquées (status bar)
-
-### Story 6.2 : Service Worker et cache offline
-
-As a utilisateur,
-I want que l'app fonctionne en mode dégradé quand je n'ai pas de connexion,
-So that je puisse au moins consulter mes données récentes.
-
-**Acceptance Criteria:**
-
-**Given** l'app est chargée pour la première fois
-**When** le Service Worker (Workbox) s'installe
-**Then** les assets statiques (CSS, JS, images, fonts) sont mis en cache (cache-first strategy)
-**And** les pages HTML sont cachées pour consultation offline
-
-**Given** l'utilisateur perd sa connexion
-**When** il ouvre l'app
-**Then** les pages cachées sont servies depuis le cache
-**And** un banner "Mode hors-ligne" s'affiche clairement
-**And** les requêtes API utilisent network-first avec fallback sur le cache
-
-**Given** l'utilisateur retrouve sa connexion
-**When** l'app détecte le retour en ligne
-**Then** le banner offline disparaît
-**And** les données sont synchronisées avec le serveur
-
-### Story 6.3 : Optimisation performance
-
-As a utilisateur,
-I want que l'app se charge rapidement et soit réactive,
-So that mon expérience soit fluide au quotidien.
-
-**Acceptance Criteria:**
-
-**Given** l'utilisateur accède à l'app
-**When** la page se charge
-**Then** le First Contentful Paint est < 1 seconde (NFR5)
-**And** le Time to Interactive est < 2 secondes (NFR6)
-**And** la taille totale de la page est < 500KB (NFR4)
-
-**Given** l'utilisateur interagit avec l'app (tap, navigation)
-**When** une action est déclenchée
-**Then** la réponse est perçue en < 200ms (NFR3)
-**And** les fragments HTMX se chargent sans flash visuel
-
-**Given** les assets sont déjà en cache (visite suivante)
-**When** l'utilisateur ouvre l'app
-**Then** le chargement est quasi-instantané grâce au cache Service Worker

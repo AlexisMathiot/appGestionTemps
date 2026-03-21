@@ -2,6 +2,22 @@
 
 {% block title %}Accueil — appGestionTemps{% endblock %}
 
+{% block head %}
+{% if active_timer and active_timer.category %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        window.timerApp.startTimer({
+            entryId: {{ active_timer.id | string | tojson }},
+            startTime: new Date({{ active_timer.started_at.isoformat() | tojson }}).getTime(),
+            categoryName: {{ active_timer.category.name | tojson }},
+            categoryEmoji: {{ active_timer.category.emoji | tojson }},
+            categoryColor: {{ active_timer.category.color | tojson }}
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <div class="max-w-4xl mx-auto">
     <!-- Header résumé jour -->

@@ -75,7 +75,7 @@ CategoryUpdate = CategoryCreate
 
 class SubCategoryCreate(BaseModel):
     name: str
-    emoji: str
+    emoji: str | None = None
 
     @field_validator("name")
     @classmethod
@@ -89,9 +89,9 @@ class SubCategoryCreate(BaseModel):
 
     @field_validator("emoji")
     @classmethod
-    def emoji_valid(cls, v: str) -> str:
+    def emoji_valid(cls, v: str | None) -> str | None:
         if not v:
-            raise ValueError("L'emoji est obligatoire")
+            return None
         if len(v) > 10:
             raise ValueError("L'emoji ne doit pas dépasser 10 caractères")
         return v

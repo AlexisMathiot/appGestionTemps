@@ -182,7 +182,7 @@ Application web progressive (PWA) de type MPA avec interactivité HTMX. Orienté
 | Rendu | Server-side (Jinja2 templates) + HTMX pour interactivité |
 | État | Côté serveur, sessions utilisateur |
 | Timer | Mise à jour client-side (JavaScript minimal) avec sync serveur |
-| Offline | Cache basique via Service Worker (pages statiques) |
+| Offline | Hors scope MVP (pas de Service Worker) |
 
 ### Browser Support
 

@@ -198,7 +198,7 @@ async def _parse_subcategory_form(
     """Parse et valide le formulaire sous-catégorie. Retourne (validated, errors, form_data)."""
     form = await request.form()
     name = form.get("name", "").strip()
-    emoji = form.get("emoji", "💼")
+    emoji = form.get("emoji", "") or None
 
     form_data = {"name": name, "emoji": emoji}
 

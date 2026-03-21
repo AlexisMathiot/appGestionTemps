@@ -9,7 +9,7 @@ from alembic import context
 
 from app.config import settings
 from app.models.base import Base
-from app.models import Category, User  # noqa: F401 — ensure models are registered
+from app.models import Category, TimeEntry, User  # noqa: F401 — ensure models are registered
 
 config = context.config
 

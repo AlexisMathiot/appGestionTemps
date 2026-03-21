@@ -11,7 +11,14 @@
     <!-- Catégorie parente -->
     <div class="flex items-center gap-3 mb-6" style="border-left: 4px solid {{ category.color }}; padding-left: 12px;">
         <span class="text-3xl">{{ category.emoji }}</span>
-        <h1 class="text-xl font-bold">{{ category.name }}</h1>
+        <h1 class="text-xl font-bold flex-1">{{ category.name }}</h1>
+        <button class="btn btn-primary btn-sm min-h-[44px]"
+                hx-post="/api/timer/start"
+                hx-vals='{"category_id": "{{ category.id }}"}'
+                hx-target="#timer-container"
+                hx-swap="innerHTML">
+            ▶ Timer
+        </button>
     </div>
 
     <!-- Sous-catégories header -->

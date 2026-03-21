@@ -577,10 +577,13 @@ async def test_cannot_create_sub_subcategory_via_service(db_session):
 
 
 @pytest.mark.asyncio
-async def test_empty_emoji_rejected(self=None):
-    """SubCategoryCreate rejette un emoji vide."""
-    with pytest.raises(ValidationError, match="obligatoire"):
-        SubCategoryCreate(name="Test", emoji="")
+async def test_empty_emoji_accepted(self=None):
+    """SubCategoryCreate accepte un emoji vide (optionnel pour sous-catégories)."""
+    sub = SubCategoryCreate(name="Test", emoji="")
+    assert sub.emoji is None
+
+    sub2 = SubCategoryCreate(name="Test2")
+    assert sub2.emoji is None
 
 
 @pytest.mark.asyncio

@@ -16,10 +16,17 @@
         {% endif %}
     </fieldset>
 
-    <!-- Emoji picker DIY -->
+    <!-- Emoji picker DIY (optionnel) -->
     <fieldset class="fieldset mb-4">
-        <label class="label">Emoji</label>
+        <label class="label">Emoji <span class="text-secondary text-xs">(optionnel)</span></label>
         <div class="grid grid-cols-6 gap-2">
+            <label class="cursor-pointer">
+                <input type="radio" name="emoji" value="" class="hidden peer"
+                       {% if not form_data.get('emoji') %}checked{% endif %} />
+                <span class="btn btn-ghost btn-sm text-sm min-h-[44px] min-w-[44px] peer-checked:bg-base-300 peer-checked:ring-2 peer-checked:ring-primary">
+                    Aucun
+                </span>
+            </label>
             {% set emojis = ['💼', '📚', '💪', '🎮', '🎵', '🎨', '🔨', '💻', '📝', '🏃', '🧘', '🍳', '🌱', '🎯', '📊', '🏠', '🚗', '💰', '🎓', '🧹', '📸', '✈️', '🎭', '🏋️', '📱', '🛒', '☕', '🎸', '🐾', '❤️'] %}
             {% for emoji in emojis %}
             <label class="cursor-pointer">

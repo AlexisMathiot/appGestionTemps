@@ -40,7 +40,7 @@ class Category(Base):
         nullable=True,
     )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    emoji: Mapped[str] = mapped_column(String(10), nullable=False)
+    emoji: Mapped[str | None] = mapped_column(String(10), nullable=True)
     color: Mapped[str] = mapped_column(String(7), nullable=False)  # #RRGGBB
     goal_type: Mapped[str | None] = mapped_column(
         String(10), nullable=True
@@ -60,6 +60,9 @@ class Category(Base):
     parent: Mapped["Category | None"] = relationship(
         "Category", back_populates="children", remote_side=[id]
     )
+
+    # TimeEntry relationship
+    time_entries = relationship("TimeEntry", back_populates="category")
 
     @validates("color")
     def validate_color(self, _key: str, value: str) -> str:

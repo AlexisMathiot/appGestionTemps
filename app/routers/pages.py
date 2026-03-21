@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
 from app.models.user import User
-from app.services import category_service
+from app.services import category_service, timer_service
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -17,6 +17,7 @@ async def home(
     db: AsyncSession = Depends(get_db),
 ):
     categories = await category_service.get_user_categories(db, user.id)
+    active_timer = await timer_service.get_active_timer(db, user.id)
     return templates.TemplateResponse(
         request,
         "pages/home.html",
@@ -24,6 +25,7 @@ async def home(
             "active_page": "home",
             "user": user,
             "categories": categories,
+            "active_timer": active_timer,
             "today_summary": "0h 0min",
             "errors": {},
             "form_data": {},

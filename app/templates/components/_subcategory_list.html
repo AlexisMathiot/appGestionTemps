@@ -4,10 +4,20 @@
     <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg border-l-4"
          style="border-left-color: {{ category.color }}">
         <div class="flex items-center gap-2">
-            <span class="text-xl">{{ sub.emoji }}</span>
+            {% if sub.emoji %}<span class="text-xl">{{ sub.emoji }}</span>{% endif %}
             <span class="font-medium">{{ sub.name }}</span>
         </div>
         <div class="flex items-center gap-1">
+            <button hx-post="/api/timer/start"
+                    hx-vals='{"category_id": "{{ sub.id }}"}'
+                    hx-target="#timer-container"
+                    hx-swap="innerHTML"
+                    class="p-1 rounded hover:bg-base-300 text-base-content opacity-60 hover:opacity-100"
+                    aria-label="Démarrer timer {{ sub.name }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+            </button>
             <button hx-get="/categories/{{ category.id }}/subcategories/{{ sub.id }}/edit"
                     hx-target="#edit-sub-form-container-{{ sub.id }}"
                     hx-swap="innerHTML"

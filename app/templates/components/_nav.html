@@ -15,7 +15,8 @@
         <span class="text-xs">Settings</span>
     </a>
     {% if user is defined and user %}
-    <form hx-post="/auth/logout" class="flex">
+    <form hx-post="/auth/logout" class="flex"
+          hx-on::before-request="window.timerApp && window.timerApp.stopTimerDisplay()">
         <button type="submit" class="btn btn-ghost flex flex-col items-center gap-0 text-error">
             <span class="text-xl">🚪</span>
             <span class="text-xs">Déconnexion</span>

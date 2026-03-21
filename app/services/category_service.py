@@ -124,7 +124,7 @@ async def get_subcategories(
 
 
 async def create_subcategory(
-    db: AsyncSession, parent: Category, name: str, emoji: str
+    db: AsyncSession, parent: Category, name: str, emoji: str | None
 ) -> Category:
     """Create a subcategory under the given parent category.
 
@@ -175,7 +175,7 @@ async def get_subcategory_by_id(
 
 
 async def update_subcategory(
-    db: AsyncSession, subcategory: Category, name: str, emoji: str
+    db: AsyncSession, subcategory: Category, name: str, emoji: str | None
 ) -> Category:
     """Update name and emoji of a subcategory."""
     subcategory.name = name

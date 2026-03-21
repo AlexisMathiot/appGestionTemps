@@ -7,10 +7,18 @@
 
     <!-- Tailwind CSS + DaisyUI (compiled) -->
     <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>.font-timer { font-family: 'JetBrains Mono', monospace; }</style>
 
     {% block head %}{% endblock %}
 </head>
 <body class="font-sans min-h-screen bg-base-100 pt-20">
+
+    <div id="timer-container">
+        <!-- Filled dynamically by HTMX or JS -->
+    </div>
 
     <div id="app-shell">
         {% include "components/_nav.html" %}
@@ -27,6 +35,7 @@
 
     <!-- HTMX -->
     <script src="{{ url_for('static', path='js/htmx.min.js') }}"></script>
+    <script src="{{ url_for('static', path='js/timer.js') }}" defer></script>
     <script>
         htmx.config.responseHandling = [
             {code: "204", swap: false},

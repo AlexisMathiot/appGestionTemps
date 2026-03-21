@@ -1,5 +1,5 @@
 # generated: 2026-03-16
-# last_updated: 2026-03-17
+# last_updated: 2026-03-20
 # project: appGestionTemps
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-03-16
-last_updated: 2026-03-17
+last_updated: 2026-03-20
 project: appGestionTemps
 project_key: NOKEY
 tracking_system: file-system
@@ -52,17 +52,17 @@ development_status:
   epic-1-retrospective: done
 
   # Epic 2: Gestion des Catégories
-  epic-2: in-progress
+  epic-2: done
   2-1-modele-category-et-ecran-daccueil-avec-empty-state: done
   2-2-creation-dune-categorie: done
   2-3-objectif-optionnel-sur-une-categorie: done
   2-4-modification-et-suppression-de-categorie: done
-  2-5-sous-categories-activites: review
+  2-5-sous-categories-activites: done
   epic-2-retrospective: optional
 
   # Epic 3: Tracking du Temps
-  epic-3: backlog
-  3-1-modele-timeentry-et-demarrage-du-timer: backlog
+  epic-3: in-progress
+  3-1-modele-timeentry-et-demarrage-du-timer: done
   3-2-pause-reprise-et-affichage-temps-reel: backlog
   3-3-arret-du-timer-et-enregistrement-avec-note: backlog
   3-4-saisie-manuelle-dune-entree-de-temps: backlog

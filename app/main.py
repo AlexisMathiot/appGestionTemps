@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.exceptions import AuthenticationRequired
-from app.routers import auth, categories, pages
+from app.routers import auth, categories, pages, timer
 from app.services.flash_service import FLASH_COOKIE_NAME, read_flash
 from app.services.session_service import SESSION_COOKIE_NAME
 
@@ -25,6 +25,7 @@ async def flash_middleware(request: Request, call_next):
 app.include_router(pages.router)
 app.include_router(auth.router)
 app.include_router(categories.router)
+app.include_router(timer.router)
 
 
 @app.exception_handler(AuthenticationRequired)

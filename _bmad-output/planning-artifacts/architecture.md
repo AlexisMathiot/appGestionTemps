@@ -48,7 +48,7 @@ _This document builds collaboratively through step-by-step discovery. Sections a
 | PostgreSQL + SQLAlchemy | PRD Stack | ORM, migrations Alembic |
 | HTMX + Jinja2 | PRD Stack | Server-side rendering, fragments HTMX |
 | Tailwind + DaisyUI | UX Spec | CSS utility-first, composants prêts |
-| PWA | PRD Platform | Service Worker, manifest, offline basic |
+| PWA | PRD Platform | Manifest standalone (Service Worker hors scope MVP) |
 | Mobile-first | UX Spec | Responsive design, touch-friendly |
 
 ### Cross-Cutting Concerns Identified
@@ -56,7 +56,7 @@ _This document builds collaboratively through step-by-step discovery. Sections a
 1. **Authentication & Authorization** — Sessions cookie-based sur toutes les routes protégées
 2. **Timer Precision** — Synchronisation client/serveur, gestion arrière-plan (Page Visibility API)
 3. **Data Isolation** — Toutes les données filtrées par user_id
-4. **PWA Infrastructure** — Service Worker, cache strategy, manifest
+4. **PWA Infrastructure** — Manifest standalone (Service Worker / cache offline hors scope MVP)
 5. **Error Handling** — Gestion cohérente des erreurs API et UI
 6. **Responsive Layouts** — Breakpoints mobile/tablet/desktop cohérents
 
@@ -229,11 +229,9 @@ User (id, email, password_hash, created_at, updated_at)
 
 | Aspect | Décision |
 |--------|----------|
-| Service Worker | Workbox |
-| Assets strategy | Cache-first (CSS, JS, images) |
-| API strategy | Network-first avec fallback offline |
-| Manifest | standalone display, theme colors |
-| Offline UX | Banner "Mode hors-ligne", données cachées en lecture |
+| Manifest | standalone display, theme colors, icônes multi-tailles |
+| Service Worker | ~~Hors scope MVP~~ (Workbox envisageable post-MVP) |
+| Offline | ~~Hors scope MVP~~ |
 
 ### Infrastructure & Deployment
 
