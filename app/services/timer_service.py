@@ -16,6 +16,21 @@ class TimerAlreadyActiveError(ConflictError):
         super().__init__("Un timer est déjà en cours")
 
 
+class TimerNotActiveError(ConflictError):
+    def __init__(self):
+        super().__init__("Aucun timer en cours")
+
+
+class TimerAlreadyPausedError(ConflictError):
+    def __init__(self):
+        super().__init__("Le timer est déjà en pause")
+
+
+class TimerNotPausedError(ConflictError):
+    def __init__(self):
+        super().__init__("Le timer n'est pas en pause")
+
+
 class CategoryNotFoundError(NotFoundError):
     def __init__(self):
         super().__init__("Catégorie introuvable")
@@ -72,3 +87,46 @@ async def start_timer(
         raise TimerAlreadyActiveError()
     await db.refresh(entry, attribute_names=["category"])
     return entry
+
+
+async def pause_timer(
+    db: AsyncSession, user_id: uuid.UUID
+) -> TimeEntry:
+    """Pause the active timer.
+
+    Raises TimerNotActiveError if no timer is running.
+    Raises TimerAlreadyPausedError if the timer is already paused.
+    """
+    active = await get_active_timer(db, user_id)
+    if not active:
+        raise TimerNotActiveError()
+    if active.paused_at is not None:
+        raise TimerAlreadyPausedError()
+
+    active.paused_at = datetime.now(timezone.utc)
+    await db.commit()
+    await db.refresh(active, attribute_names=["category"])
+    return active
+
+
+async def resume_timer(
+    db: AsyncSession, user_id: uuid.UUID
+) -> TimeEntry:
+    """Resume a paused timer.
+
+    Raises TimerNotActiveError if no timer is running.
+    Raises TimerNotPausedError if the timer is not paused.
+    """
+    active = await get_active_timer(db, user_id)
+    if not active:
+        raise TimerNotActiveError()
+    if active.paused_at is None:
+        raise TimerNotPausedError()
+
+    now = datetime.now(timezone.utc)
+    pause_duration = int((now - active.paused_at).total_seconds())
+    active.paused_seconds += pause_duration
+    active.paused_at = None
+    await db.commit()
+    await db.refresh(active, attribute_names=["category"])
+    return active

@@ -11,7 +11,13 @@ from app.models.user import User
 from app.routers.helpers import htmx_redirect
 from app.services import timer_service
 from app.services.flash_service import flash
-from app.services.timer_service import CategoryNotFoundError, TimerAlreadyActiveError
+from app.services.timer_service import (
+    CategoryNotFoundError,
+    TimerAlreadyActiveError,
+    TimerAlreadyPausedError,
+    TimerNotActiveError,
+    TimerNotPausedError,
+)
 
 router = APIRouter(prefix="/api/timer", tags=["timer"])
 templates = Jinja2Templates(directory="app/templates")
@@ -41,6 +47,11 @@ async def start_timer_endpoint(
     except CategoryNotFoundError:
         return Response(status_code=404)
 
+    return _timer_response(request, entry)
+
+
+def _timer_response(request: Request, entry):
+    """Build the _timer_display.html fragment response for a TimeEntry."""
     category = entry.category
     return templates.TemplateResponse(
         request,
@@ -51,5 +62,48 @@ async def start_timer_endpoint(
             "category_emoji": (category.emoji or "") if category else "",
             "category_color": category.color if category else "#6B7280",
             "started_at": entry.started_at.isoformat(),
+            "is_paused": entry.paused_at is not None,
+            "paused_seconds": entry.paused_seconds,
+            "paused_at": entry.paused_at.isoformat() if entry.paused_at else None,
         },
     )
+
+
+@router.post("/pause", response_class=HTMLResponse)
+async def pause_timer_endpoint(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    try:
+        entry = await timer_service.pause_timer(db, user.id)
+    except TimerNotActiveError:
+        response = htmx_redirect(request, "/")
+        flash(response, "warning", "Aucun timer en cours")
+        return response
+    except TimerAlreadyPausedError:
+        response = htmx_redirect(request, "/")
+        flash(response, "info", "Le timer est déjà en pause")
+        return response
+
+    return _timer_response(request, entry)
+
+
+@router.post("/resume", response_class=HTMLResponse)
+async def resume_timer_endpoint(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    try:
+        entry = await timer_service.resume_timer(db, user.id)
+    except TimerNotActiveError:
+        response = htmx_redirect(request, "/")
+        flash(response, "warning", "Aucun timer en cours")
+        return response
+    except TimerNotPausedError:
+        response = htmx_redirect(request, "/")
+        flash(response, "info", "Le timer n'est pas en pause")
+        return response
+
+    return _timer_response(request, entry)

@@ -11,7 +11,10 @@
             startTime: new Date({{ active_timer.started_at.isoformat() | tojson }}).getTime(),
             categoryName: {{ active_timer.category.name | tojson }},
             categoryEmoji: {{ active_timer.category.emoji | tojson }},
-            categoryColor: {{ active_timer.category.color | tojson }}
+            categoryColor: {{ active_timer.category.color | tojson }},
+            isPaused: {{ is_paused | tojson }},
+            pausedSeconds: {{ paused_seconds | tojson }},
+            pausedAt: {{ active_timer.paused_at.isoformat() | tojson if active_timer.paused_at else 'null' }}
         });
     });
 </script>

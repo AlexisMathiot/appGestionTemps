@@ -1,10 +1,22 @@
-<div id="timer-header" class="sticky top-0 z-50 w-full py-4 px-4 text-center shadow-lg"
+<div id="timer-header"
+     class="sticky top-0 z-50 w-full py-4 px-4 text-center shadow-lg transition-opacity duration-300 {% if is_paused %}opacity-60{% endif %}"
      style="background-color: {{ category_color }}">
     <div class="text-white">
         <div class="text-2xl mb-1">{{ category_emoji }} {{ category_name }}</div>
         <div id="timer-time" class="font-timer text-5xl font-bold tracking-wider">00:00:00</div>
+        {% if is_paused %}
+        <div class="text-sm opacity-80 mt-1">En pause</div>
+        {% endif %}
         <div class="mt-2 flex justify-center gap-2">
-            <button class="btn btn-sm btn-disabled opacity-50" disabled>Pause</button>
+            {% if is_paused %}
+            <button class="btn btn-sm btn-ghost text-white border-white/30"
+                    hx-post="/api/timer/resume"
+                    hx-target="#timer-container">Reprendre</button>
+            {% else %}
+            <button class="btn btn-sm btn-ghost text-white border-white/30"
+                    hx-post="/api/timer/pause"
+                    hx-target="#timer-container">Pause</button>
+            {% endif %}
             <button class="btn btn-sm btn-disabled opacity-50" disabled>Stop</button>
         </div>
     </div>
@@ -18,7 +30,10 @@
             startTime: startTime,
             categoryName: {{ category_name | tojson }},
             categoryEmoji: {{ category_emoji | tojson }},
-            categoryColor: {{ category_color | tojson }}
+            categoryColor: {{ category_color | tojson }},
+            isPaused: {{ is_paused | tojson }},
+            pausedSeconds: {{ paused_seconds | tojson }},
+            pausedAt: {{ paused_at | tojson }}
         });
     })();
 </script>

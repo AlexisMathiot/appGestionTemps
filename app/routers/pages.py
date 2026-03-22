@@ -18,6 +18,13 @@ async def home(
 ):
     categories = await category_service.get_user_categories(db, user.id)
     active_timer = await timer_service.get_active_timer(db, user.id)
+
+    is_paused = False
+    paused_seconds = 0
+    if active_timer:
+        is_paused = active_timer.paused_at is not None
+        paused_seconds = active_timer.paused_seconds
+
     return templates.TemplateResponse(
         request,
         "pages/home.html",
@@ -26,6 +33,8 @@ async def home(
             "user": user,
             "categories": categories,
             "active_timer": active_timer,
+            "is_paused": is_paused,
+            "paused_seconds": paused_seconds,
             "today_summary": "0h 0min",
             "errors": {},
             "form_data": {},

@@ -1,5 +1,5 @@
 # generated: 2026-03-16
-# last_updated: 2026-03-20
+# last_updated: 2026-03-21
 # project: appGestionTemps
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-03-16
-last_updated: 2026-03-20
+last_updated: 2026-03-21
 project: appGestionTemps
 project_key: NOKEY
 tracking_system: file-system
@@ -63,7 +63,7 @@ development_status:
   # Epic 3: Tracking du Temps
   epic-3: in-progress
   3-1-modele-timeentry-et-demarrage-du-timer: done
-  3-2-pause-reprise-et-affichage-temps-reel: backlog
+  3-2-pause-reprise-et-affichage-temps-reel: review
   3-3-arret-du-timer-et-enregistrement-avec-note: backlog
   3-4-saisie-manuelle-dune-entree-de-temps: backlog
   3-5-modification-et-suppression-dentrees-de-temps: backlog

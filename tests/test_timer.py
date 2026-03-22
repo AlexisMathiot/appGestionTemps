@@ -8,7 +8,13 @@ from app.models.category import Category
 from app.models.time_entry import TimeEntry
 from app.services import auth_service, category_service, timer_service
 from app.services.session_service import SESSION_COOKIE_NAME, get_user_id_from_cookie
-from app.services.timer_service import CategoryNotFoundError, TimerAlreadyActiveError
+from app.services.timer_service import (
+    CategoryNotFoundError,
+    TimerAlreadyActiveError,
+    TimerAlreadyPausedError,
+    TimerNotActiveError,
+    TimerNotPausedError,
+)
 
 
 def _get_user_id(authenticated_client) -> uuid.UUID:
@@ -297,3 +303,302 @@ class TestTimerRoutes:
         response = await authenticated_client.get("/")
         assert response.status_code == 200
         assert "timerApp.startTimer" not in response.text
+
+
+# --- Pause model tests ---
+
+
+class TestTimeEntryPauseModel:
+    @pytest.mark.asyncio
+    async def test_pause_fields_defaults(self, db_session):
+        """TimeEntry has paused_at=None and paused_seconds=0 by default."""
+        user = await auth_service.create_user(db_session, "pause-model@test.com", "password123")
+        cat = await category_service.create_category(db_session, user.id, "Work", "💼", "#FF5733")
+
+        entry = TimeEntry(
+            user_id=user.id,
+            category_id=cat.id,
+            started_at=datetime.now(UTC),
+        )
+        db_session.add(entry)
+        await db_session.commit()
+
+        result = await db_session.execute(select(TimeEntry).where(TimeEntry.user_id == user.id))
+        saved = result.scalar_one()
+        assert saved.paused_at is None
+        assert saved.paused_seconds == 0
+
+    @pytest.mark.asyncio
+    async def test_pause_fields_settable(self, db_session):
+        """TimeEntry paused_at and paused_seconds can be set."""
+        user = await auth_service.create_user(db_session, "pause-set@test.com", "password123")
+        cat = await category_service.create_category(db_session, user.id, "Work", "💼", "#FF5733")
+        now = datetime.now(UTC)
+
+        entry = TimeEntry(
+            user_id=user.id,
+            category_id=cat.id,
+            started_at=now,
+            paused_at=now,
+            paused_seconds=120,
+        )
+        db_session.add(entry)
+        await db_session.commit()
+
+        result = await db_session.execute(select(TimeEntry).where(TimeEntry.user_id == user.id))
+        saved = result.scalar_one()
+        assert saved.paused_at is not None
+        assert saved.paused_seconds == 120
+
+
+# --- Pause service tests ---
+
+
+class TestTimerPauseService:
+    @pytest.mark.asyncio
+    async def test_pause_timer_success(self, db_session):
+        """pause_timer sets paused_at on active timer."""
+        user = await auth_service.create_user(db_session, "pause-svc@test.com", "password123")
+        cat = await category_service.create_category(db_session, user.id, "Work", "💼", "#FF5733")
+
+        await timer_service.start_timer(db_session, user.id, cat.id)
+        entry = await timer_service.pause_timer(db_session, user.id)
+
+        assert entry.paused_at is not None
+        assert entry.paused_seconds == 0
+        assert entry.category is not None
+
+    @pytest.mark.asyncio
+    async def test_pause_timer_no_active(self, db_session):
+        """pause_timer raises TimerNotActiveError when no timer is running."""
+        user = await auth_service.create_user(db_session, "pause-noact@test.com", "password123")
+
+        with pytest.raises(TimerNotActiveError):
+            await timer_service.pause_timer(db_session, user.id)
+
+    @pytest.mark.asyncio
+    async def test_pause_timer_already_paused(self, db_session):
+        """pause_timer raises TimerAlreadyPausedError when timer is already paused."""
+        user = await auth_service.create_user(db_session, "pause-dup@test.com", "password123")
+        cat = await category_service.create_category(db_session, user.id, "Work", "💼", "#FF5733")
+
+        await timer_service.start_timer(db_session, user.id, cat.id)
+        await timer_service.pause_timer(db_session, user.id)
+
+        with pytest.raises(TimerAlreadyPausedError):
+            await timer_service.pause_timer(db_session, user.id)
+
+    @pytest.mark.asyncio
+    async def test_resume_timer_success(self, db_session):
+        """resume_timer clears paused_at and increments paused_seconds."""
+        user = await auth_service.create_user(db_session, "resume-svc@test.com", "password123")
+        cat = await category_service.create_category(db_session, user.id, "Work", "💼", "#FF5733")
+
+        await timer_service.start_timer(db_session, user.id, cat.id)
+        await timer_service.pause_timer(db_session, user.id)
+        entry = await timer_service.resume_timer(db_session, user.id)
+
+        assert entry.paused_at is None
+        assert entry.paused_seconds >= 0
+        assert entry.category is not None
+
+    @pytest.mark.asyncio
+    async def test_resume_timer_no_active(self, db_session):
+        """resume_timer raises TimerNotActiveError when no timer is running."""
+        user = await auth_service.create_user(db_session, "resume-noact@test.com", "password123")
+
+        with pytest.raises(TimerNotActiveError):
+            await timer_service.resume_timer(db_session, user.id)
+
+    @pytest.mark.asyncio
+    async def test_resume_timer_not_paused(self, db_session):
+        """resume_timer raises TimerNotPausedError when timer is not paused."""
+        user = await auth_service.create_user(db_session, "resume-notpaus@test.com", "password123")
+        cat = await category_service.create_category(db_session, user.id, "Work", "💼", "#FF5733")
+
+        await timer_service.start_timer(db_session, user.id, cat.id)
+
+        with pytest.raises(TimerNotPausedError):
+            await timer_service.resume_timer(db_session, user.id)
+
+    @pytest.mark.asyncio
+    async def test_pause_resume_accumulation(self, db_session):
+        """Multiple pause/resume cycles accumulate paused_seconds correctly."""
+        import asyncio
+
+        user = await auth_service.create_user(db_session, "pause-accum@test.com", "password123")
+        cat = await category_service.create_category(db_session, user.id, "Work", "💼", "#FF5733")
+
+        await timer_service.start_timer(db_session, user.id, cat.id)
+
+        # First pause/resume cycle
+        await timer_service.pause_timer(db_session, user.id)
+        await asyncio.sleep(1)
+        entry = await timer_service.resume_timer(db_session, user.id)
+        first_paused = entry.paused_seconds
+
+        assert first_paused >= 1
+
+        # Second pause/resume cycle
+        await timer_service.pause_timer(db_session, user.id)
+        await asyncio.sleep(1)
+        entry = await timer_service.resume_timer(db_session, user.id)
+
+        assert entry.paused_seconds >= first_paused + 1
+
+
+# --- Pause route tests ---
+
+
+class TestTimerPauseRoutes:
+    @pytest.mark.asyncio
+    async def test_pause_timer_success(self, authenticated_client, db_session):
+        """POST /api/timer/pause returns HTML fragment with paused state."""
+        user_id = _get_user_id(authenticated_client)
+        cat = await category_service.create_category(db_session, user_id, "Work", "💼", "#FF5733")
+
+        # Start a timer first
+        await authenticated_client.post(
+            "/api/timer/start",
+            data={"category_id": str(cat.id)},
+            headers={"HX-Request": "true"},
+        )
+
+        # Pause
+        response = await authenticated_client.post(
+            "/api/timer/pause",
+            headers={"HX-Request": "true"},
+        )
+
+        assert response.status_code == 200
+        assert "timer-header" in response.text
+        assert "Reprendre" in response.text
+        assert "En pause" in response.text
+
+    @pytest.mark.asyncio
+    async def test_pause_timer_unauthenticated(self, client):
+        """POST /api/timer/pause without auth redirects to login."""
+        response = await client.post(
+            "/api/timer/pause",
+            headers={"HX-Request": "true"},
+        )
+
+        assert response.status_code == 200
+        assert "HX-Redirect" in response.headers
+        assert "/auth/login" in response.headers["HX-Redirect"]
+
+    @pytest.mark.asyncio
+    async def test_pause_timer_no_active(self, authenticated_client):
+        """POST /api/timer/pause without active timer returns flash warning."""
+        response = await authenticated_client.post(
+            "/api/timer/pause",
+            headers={"HX-Request": "true"},
+        )
+
+        assert response.status_code == 200
+        assert "HX-Redirect" in response.headers
+
+    @pytest.mark.asyncio
+    async def test_pause_timer_already_paused(self, authenticated_client, db_session):
+        """POST /api/timer/pause on already paused timer returns flash info."""
+        user_id = _get_user_id(authenticated_client)
+        cat = await category_service.create_category(db_session, user_id, "Work", "💼", "#FF5733")
+
+        await authenticated_client.post(
+            "/api/timer/start",
+            data={"category_id": str(cat.id)},
+            headers={"HX-Request": "true"},
+        )
+        await authenticated_client.post(
+            "/api/timer/pause",
+            headers={"HX-Request": "true"},
+        )
+
+        # Try to pause again
+        response = await authenticated_client.post(
+            "/api/timer/pause",
+            headers={"HX-Request": "true"},
+        )
+
+        assert response.status_code == 200
+        assert "HX-Redirect" in response.headers
+
+    @pytest.mark.asyncio
+    async def test_resume_timer_success(self, authenticated_client, db_session):
+        """POST /api/timer/resume returns HTML fragment with active state."""
+        user_id = _get_user_id(authenticated_client)
+        cat = await category_service.create_category(db_session, user_id, "Work", "💼", "#FF5733")
+
+        await authenticated_client.post(
+            "/api/timer/start",
+            data={"category_id": str(cat.id)},
+            headers={"HX-Request": "true"},
+        )
+        await authenticated_client.post(
+            "/api/timer/pause",
+            headers={"HX-Request": "true"},
+        )
+
+        # Resume
+        response = await authenticated_client.post(
+            "/api/timer/resume",
+            headers={"HX-Request": "true"},
+        )
+
+        assert response.status_code == 200
+        assert "timer-header" in response.text
+        assert "Pause" in response.text
+
+    @pytest.mark.asyncio
+    async def test_resume_timer_unauthenticated(self, client):
+        """POST /api/timer/resume without auth redirects to login."""
+        response = await client.post(
+            "/api/timer/resume",
+            headers={"HX-Request": "true"},
+        )
+
+        assert response.status_code == 200
+        assert "HX-Redirect" in response.headers
+        assert "/auth/login" in response.headers["HX-Redirect"]
+
+    @pytest.mark.asyncio
+    async def test_resume_timer_not_paused(self, authenticated_client, db_session):
+        """POST /api/timer/resume on non-paused timer returns flash info."""
+        user_id = _get_user_id(authenticated_client)
+        cat = await category_service.create_category(db_session, user_id, "Work", "💼", "#FF5733")
+
+        await authenticated_client.post(
+            "/api/timer/start",
+            data={"category_id": str(cat.id)},
+            headers={"HX-Request": "true"},
+        )
+
+        # Try to resume without pausing
+        response = await authenticated_client.post(
+            "/api/timer/resume",
+            headers={"HX-Request": "true"},
+        )
+
+        assert response.status_code == 200
+        assert "HX-Redirect" in response.headers
+
+    @pytest.mark.asyncio
+    async def test_home_with_paused_timer(self, authenticated_client, db_session):
+        """Home page includes pause data when timer is paused."""
+        user_id = _get_user_id(authenticated_client)
+        cat = await category_service.create_category(db_session, user_id, "Work", "💼", "#FF5733")
+
+        await authenticated_client.post(
+            "/api/timer/start",
+            data={"category_id": str(cat.id)},
+            headers={"HX-Request": "true"},
+        )
+        await authenticated_client.post(
+            "/api/timer/pause",
+            headers={"HX-Request": "true"},
+        )
+
+        response = await authenticated_client.get("/")
+        assert response.status_code == 200
+        assert "timerApp.startTimer" in response.text
+        assert "isPaused" in response.text
